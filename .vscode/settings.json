@@ -1,0 +1,26 @@
+{
+    "editor.formatOnSave": true,
+    //     "eslint.autoFixOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
+    //     "eslint.validate": [
+    //         {
+    //             "language": "javascript",
+    //             "autoFix": true
+    //         },
+    //         {
+    //             "language": "typescript",
+    //             "autoFix": true
+    //         }
+    //     ],
+    // Change to "on" to auto debug when the server is running
+    "debug.node.autoAttach": "off",
+    // This doesn't seem to help at all but supposedly it can protect you from linting conflicts
+    "[javascript]": {
+        "editor.formatOnSave": false
+    },
+    "[typescript]": {
+        "editor.formatOnSave": false
+    }
+}
