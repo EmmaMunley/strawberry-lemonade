@@ -4,7 +4,7 @@ import { validate } from "../../types";
 import { injectable } from "inversify";
 import camelcase from "camelcase";
 
-type Primitive = number | string | boolean | null | undefined;
+export type Primitive = number | string | boolean | null | undefined;
 export type Querier = { query: (sql: string, values: Primitive[]) => { rows: any[] } };
 export type Query = { query: string; values: Primitive[] };
 

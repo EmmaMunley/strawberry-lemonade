@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node -r ts-node/register ./src/server.ts",
         "start:dev": "node --inspect=5858 -r ts-node/register ./src/server.ts",
-        "start:watch": "nodemon",
+        "start:watch": "ts-node-dev --respawn --inspect=5858 ./src/server.ts",
         "build": "tsc",
         "seed": "node  --inspect=9229 -r ts-node/register ./tools/seed.ts",
         "simulate-traffic": "node  --inspect=9228 -r ts-node/register ./tools/simulate-traffic.ts"
@@ -35,14 +35,21 @@
         "ext": "ts"
     },
     "dependencies": {
+        "@types/bcryptjs": "^2.4.2",
+        "@types/cheerio": "^0.22.17",
         "@types/date-fns": "^2.6.0",
+        "@types/keyv": "^3.1.1",
         "@types/multer": "^1.4.2",
+        "@types/puppeteer": "^2.0.1",
         "@types/slonik": "^21.4.0",
         "@types/uuid": "^3.4.6",
         "@types/yargs": "^15.0.0",
         "aws-sdk": "^2.562.0",
+        "axios": "^0.19.2",
         "bcrypt": "^3.0.6",
+        "bcryptjs": "^2.4.3",
         "camelcase": "^5.3.1",
+        "cheerio": "^1.0.0-rc.3",
         "class-transformer": "^0.2.3",
         "class-validator": "^0.10.2",
         "cookie-parser": "^1.4.4",
@@ -53,10 +60,12 @@
         "inversify": "^5.0.1",
         "io-ts": "^2.0.1",
         "jsonwebtoken": "^8.5.1",
+        "keyv": "^4.0.0",
         "knex": "^0.19.5",
         "multer": "^1.4.2",
         "pg": "^7.14.0",
         "pg-hstore": "^2.3.3",
+        "puppeteer": "^2.1.1",
         "reflect-metadata": "^0.1.13",
         "slonik": "^21.4.1",
         "validator": "^12.1.0",
@@ -81,6 +90,7 @@
         "eslint-plugin-prettier": "^3.1.1",
         "prettier": "^1.19.1",
         "ts-node": "^8.5.4",
+        "ts-node-dev": "^1.0.0-pre.44",
         "typescript": "^3.7.2"
     }
 }

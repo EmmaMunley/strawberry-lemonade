@@ -1,7 +1,7 @@
 import express from "express";
 import Controller from "./Controller";
 import { validateBody, validateParams } from "../middleware/validation";
-import UserDal from "../dal/UserDal";
+import UserDal from "../dal/user/UserDal";
 import { NextFunction } from "connect";
 import ServerException from "../exceptions/ServerException";
 import ClientException from "../exceptions/ClientException";

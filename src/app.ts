@@ -4,7 +4,7 @@ import errorHandler from "./middleware/errorHandler";
 import cookieParser from "cookie-parser";
 import { UserController, RegistryController } from "./controllers";
 import { AppConfiguration } from "./config/Configuration";
-import { Database } from "./database/db";
+import { Database } from "./database/Database";
 import { injectable } from "inversify";
 import { LoggerFactory } from "./logger/LoggerFactory";
 import { createHttpLoggerMiddleware } from "./middleware/httpLogger";
@@ -39,7 +39,7 @@ class App {
 
     public startServer(): void {
         this.database
-            .initializeDatabase()
+            .initialize()
             .then(() => {
                 this.initializeMiddlewares();
                 this.initializePing();

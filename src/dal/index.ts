@@ -1,3 +1,3 @@
-import UserDal from "./UserDal";
+import UserDal from "./user/UserDal";
 
 export { UserDal };

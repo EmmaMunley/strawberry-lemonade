@@ -1,37 +1,34 @@
-import { CreateUserDTO } from "../dto/user/CreateUserDto";
-import { User, UserId, UserDetails } from "../types/user/User";
-import { ErrorResponse, usernameTaken, alreadyVerified, incorrectVerificationToken, incorrectPassword } from "../error/errorResponses";
-import { Pool } from "../database/pool/Pool";
-import { AppConfiguration } from "../config/Configuration";
+import { CreateUserDTO } from "../../dto/user/CreateUserDto";
+import { User, UserId, UserDetails } from "../../types/user/User";
+import { ErrorResponse, usernameTaken, alreadyVerified, incorrectVerificationToken, incorrectPassword } from "../../error/errorResponses";
+import { Pool } from "../../database/pool/Pool";
+import { AppConfiguration } from "../../config/Configuration";
 import { injectable } from "inversify";
-import { UserQueries } from "./queries/UserQueries";
-import { Queriable } from "../database/pool/QueryClient";
+import { UserQueries } from "./UserQueries";
+import { Queriable } from "../../database/pool/QueryClient";
 import { Either, left, right } from "fp-ts/lib/Either";
-import { LoggerFactory } from "../logger/LoggerFactory";
-import bcrypt from "bcrypt";
-import { VerifyUserDTO } from "../dto/user/VerifyUserDto";
-import { Exists } from "../types/StandardTypes";
+import { LoggerFactory } from "../../logger/LoggerFactory";
+import bcrypt from "bcryptjs";
+import { VerifyUserDTO } from "../../dto/user/VerifyUserDto";
+import { Exists } from "../../types/StandardTypes";
+import { Logger } from "winston";
 
 @injectable()
 export default class UserDal {
     private pool: Pool;
     private saltRounds: number;
     private queries: UserQueries;
-    private logger = LoggerFactory.getLogger(module);
+    private logger: Logger;
 
     constructor(queries: UserQueries, pool: Pool, config: AppConfiguration) {
         this.queries = queries;
         this.pool = pool;
         this.saltRounds = config.get().auth.saltRounds;
+        this.logger = LoggerFactory.getLogger(module);
     }
 
     public async updateUserImage(userId: string, imageFile: string): Promise<void> {
         const query = this.queries.updateUserImage(userId, imageFile);
-        await this.pool.returningNone(query);
-    }
-
-    public async updateUserBio(userId: string, bio: string): Promise<void> {
-        const query = this.queries.updateUserBio(userId, bio);
         await this.pool.returningNone(query);
     }
 
@@ -73,7 +70,7 @@ export default class UserDal {
                 return left(usernameTaken(user.username));
             }
             const password = await this.hashPassword(user.password);
-            const query = this.queries.insertUser(user.username, password, user.phoneNumber, verificationToken);
+            const query = this.queries.createUser(user.username, password, user.phoneNumber, verificationToken);
             const createUser = await transaction.returningOne(query, UserDetails);
             await transaction.commit();
             return right(createUser);

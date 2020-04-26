@@ -1,13 +1,12 @@
-import { ConfigurationData } from "./Configuration";
-
-const config: ConfigurationData = {
+export const config = {
     log: {
         level: "debug",
     },
     // Name of the application
     application: {
-        name: "typescript-backend-template",
+        name: "bliss-registry",
         rootDir: "src",
+        sqlDir: "sql",
     },
     auth: {
         saltRounds: 10,
@@ -55,5 +54,3 @@ const config: ConfigurationData = {
     },
     port: process.env.PORT || 4040,
 };
-
-export default config;

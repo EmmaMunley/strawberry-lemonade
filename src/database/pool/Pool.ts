@@ -4,7 +4,7 @@ import * as t from "io-ts";
 import { AppConfiguration } from "../../config/Configuration";
 import { types, PoolClient } from "pg";
 import { injectable } from "inversify";
-import { QueryClient, Queriable, Query } from "./QueryClient";
+import { QueryClient, Queriable, Query, Primitive } from "./QueryClient";
 import { timestampToSwiftApprovedFormat } from "../../utils/date";
 import { LoggerFactory } from "../../logger/LoggerFactory";
 
@@ -25,6 +25,11 @@ export class Pool extends QueryClient implements Queriable {
         this.logger.info(`Idle: ${this.pool.idleCount}`);
         this.logger.info(`Waiting: ${this.pool.waitingCount}`);
     }
+
+    async close(): Promise<void> {
+        await this.pool.end();
+    }
+
     async getConnection(): Promise<PoolClient> {
         return await this.pool.connect();
     }
@@ -52,5 +57,9 @@ export class Pool extends QueryClient implements Queriable {
 
     async returningNone(query: Query): Promise<void> {
         return await this.returningNoneWithClient(query, this.pool);
+    }
+
+    async query(query: string, values: Primitive[] = []): Promise<void> {
+        return await this.returningNone({ query, values });
     }
 }
