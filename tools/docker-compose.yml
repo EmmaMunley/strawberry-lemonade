@@ -6,19 +6,20 @@ services:
         environment:
             - POSTGRES_USER=postgres
             - POSTGRES_PASSWORD=password
-            - POSTGRES_DB=bliss-registry
+            - POSTGRES_DB=commoodity
         ports:
             - "5432:5432"
         volumes:
             - database_data:/var/lib/postgresql/data
     localstack:
         image: localstack/localstack:latest
-        container_name: s3
+        container_name: localstack
         ports:
             - "4572:4572"
+            - "4575:4575"
             - "8055:8080"
         environment:
-            - SERVICES=s3
+            - SERVICES=s3,sns
             - DEBUG=1
             - DATA_DIR=/tmp/localstack/data
         volumes:

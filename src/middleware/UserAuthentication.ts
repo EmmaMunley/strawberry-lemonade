@@ -1,12 +1,13 @@
 import express from "express";
 import { DataStoredInToken, JWTManager } from "../jwt/JWTManager";
 import { RequestWithUser } from "../types/request/RequestWithUser";
-import { ErrorResponse, isErrorResponse } from "../error/errorResponses";
+import { ErrorResponse, isErrorResponse } from "../error/ErrorResponses";
 import { UserDetails } from "../types/user/User";
 import BadAuthenticationTokenException from "../exceptions/BadAuthenticationTokenException";
 import MissingAuthenticationTokenException from "../exceptions/MissingAuthenticationTokenException";
 import { LoggerFactory } from "../logger/LoggerFactory";
 import { injectable } from "inversify";
+import { Logger } from "winston";
 
 interface RequestWithUserHandler {
     (request: RequestWithUser, response: express.Response, next: express.NextFunction): void;
@@ -15,15 +16,15 @@ interface RequestWithUserHandler {
 @injectable()
 export class UserAuthentication {
     private jwtManager: JWTManager;
-    private logger = LoggerFactory.getLogger(module);
+    private logger: Logger;
     readonly BAD_AUTH = "JWT authentication token is invalid";
     readonly MISSING_AUTH = "JWT authentication token is missing";
 
-    constructor(jwtManager: JWTManager) {
+    constructor(jwtManager: JWTManager, loggerFactory: LoggerFactory) {
         this.jwtManager = jwtManager;
-
         this.withUser = this.withUser.bind(this);
         this.authenticate = this.authenticate.bind(this);
+        this.logger = loggerFactory.getLogger(module);
     }
 
     withUser(route: RequestWithUserHandler): express.RequestHandler {

@@ -1,4 +1,4 @@
-import { User, UserDetails } from "../types/user/User";
+import { UserDetails } from "../types/user/User";
 import jwt from "jsonwebtoken";
 import express from "express";
 import { injectable } from "inversify";
@@ -38,6 +38,7 @@ export class JWTManager {
         return `Authorization=${tokenData.token};path=/; HttpOnly;Max-Age=${tokenData.expiresIn};`;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public verifyToken(cookies?: Record<string, any>): DataStoredInToken | undefined {
         if (cookies && cookies.Authorization) {
             return jwt.verify(cookies.Authorization, this.secret) as DataStoredInToken;

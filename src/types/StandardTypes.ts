@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 import validator from "validator";
-import ErrorCodes from "../error/errorCodes";
+import ErrorCodes from "../error/ErrorCodes";
 import { either } from "fp-ts/lib/Either";
 
 export const Exists = t.type({ exists: t.boolean });
@@ -9,7 +9,13 @@ export function createUUIDType(typeName: string, validationError: ErrorCodes): t
     return new t.Type<string, string, unknown>(
         typeName,
         (id): id is string => typeof id === "string",
-        (id, context) => (typeof id === "string" && validator.isUUID(id, 4) ? t.success(id) : t.failure(id, context, validationError)),
+        (id, context) => {
+            if (typeof id === "string" && validator.isUUID(id, 4)) {
+                return t.success(id);
+            } else {
+                return t.failure(id, context, validationError);
+            }
+        },
         t.identity,
     );
 }

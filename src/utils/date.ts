@@ -1,4 +1,4 @@
-// todo: undo this fuckery
+// todo: revisit
 export function timestampToSwiftApprovedFormat(timestamp: string): string {
     const isoString = new Date(timestamp).toISOString();
     const millisRegex = /\.[\d]*/;

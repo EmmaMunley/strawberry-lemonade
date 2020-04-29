@@ -5,6 +5,7 @@ import { AppConfiguration } from "../config/Configuration";
 import { v4 } from "uuid";
 import { LoggerFactory } from "../logger/LoggerFactory";
 import { Response } from "express";
+import { Logger } from "winston";
 
 const uuid = v4;
 
@@ -14,15 +15,16 @@ export type ImageDownload = { data: Buffer; fileType: string };
 export class ImageManager {
     private s3Client: S3;
     private bucket: string;
-    private logger = LoggerFactory.getLogger(module);
+    private logger: Logger;
 
-    constructor(config: AppConfiguration) {
+    constructor(config: AppConfiguration, loggerFactory: LoggerFactory) {
         const configData = config.get();
         this.bucket = configData.aws.s3.bucket;
         this.s3Client = new S3({
             endpoint: configData.aws.s3.url,
             s3ForcePathStyle: true,
         });
+        this.logger = loggerFactory.getLogger(module);
     }
 
     // todo: This class probably shouldn't handle http-level concerns

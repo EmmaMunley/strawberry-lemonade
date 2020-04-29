@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 import validator from "validator";
-import ErrorCodes from "../../error/errorCodes";
+import ErrorCodes from "../../error/ErrorCodes";
 import { createUUIDType } from "../StandardTypes";
 import { AppConfiguration } from "../../config/Configuration";
 import { dependencies } from "../../dependencies/inversify.config";
@@ -54,6 +54,13 @@ export const UserIsVerified = new t.Type<boolean, boolean, unknown>(
     "UserIsVerified",
     (isVerified): isVerified is boolean => typeof isVerified === "boolean",
     (isVerified, context) => (typeof isVerified === "boolean" ? t.success(isVerified) : t.failure(isVerified, context, ErrorCodes.invalidIsVerified)),
+    t.identity,
+);
+
+export const UserBio = new t.Type<string, string, unknown>(
+    "UserBio",
+    (bio): bio is string => typeof bio === "string",
+    (bio, context) => (typeof bio === "string" && bio.length <= 250 ? t.success(bio) : t.failure(bio, context, ErrorCodes.invalidBio)),
     t.identity,
 );
 

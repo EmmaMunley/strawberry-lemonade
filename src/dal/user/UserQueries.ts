@@ -2,12 +2,14 @@ import { injectable } from "inversify";
 import { Query } from "../../database/pool/QueryClient";
 import { CategorizedQueries } from "../Queries";
 import { AppConfiguration } from "../../config/Configuration";
+import { LoggerFactory } from "../../logger/LoggerFactory";
 
 @injectable()
 export class UserQueries extends CategorizedQueries {
     private getUserDetailsQuery: string;
     private updateUserPasswordQuery: string;
     private updateUserImageQuery: string;
+    private updateUserBioQuery: string;
     private getUserIdQuery: string;
     private usernameExistsQuery: string;
     private createUserQuery: string;
@@ -15,11 +17,12 @@ export class UserQueries extends CategorizedQueries {
     private getUserByUsernameQuery: string;
     private verifyUserQuery: string;
 
-    constructor(config: AppConfiguration) {
-        super(config, "user");
+    constructor(config: AppConfiguration, loggerFactory: LoggerFactory) {
+        super(config, loggerFactory, "user");
         this.getUserDetailsQuery = this.loadSQLFile("GetUserDetails");
         this.updateUserPasswordQuery = this.loadSQLFile("UpdatePassword");
         this.updateUserImageQuery = this.loadSQLFile("UpdateImage");
+        this.updateUserBioQuery = this.loadSQLFile("UpdateBio");
         this.getUserIdQuery = this.loadSQLFile("GetUserId");
         this.usernameExistsQuery = this.loadSQLFile("UsernameExists");
         this.createUserQuery = this.loadSQLFile("CreateUser");
@@ -38,6 +41,10 @@ export class UserQueries extends CategorizedQueries {
 
     public updateUserImage(userId: string, imageFile: string): Query {
         return { query: this.updateUserImageQuery, values: [userId, imageFile] };
+    }
+
+    public updateUserBio(userId: string, imageFile: string): Query {
+        return { query: this.updateUserBioQuery, values: [userId, imageFile] };
     }
 
     public getUserId(username: string): Query {

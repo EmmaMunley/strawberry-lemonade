@@ -4,35 +4,29 @@ import { injectable } from "inversify";
 import { AppConfiguration } from "../config/Configuration";
 import { LoggerFactory } from "../logger/LoggerFactory";
 import { VerificationTokenFactory } from "./VerificationTokenFactory";
+import { Logger } from "winston";
 
 @injectable()
 export class VerificationManager {
     private amazonSNS: SNS;
-    private appName: string;
-    private logger = LoggerFactory.getLogger(module);
+    private logger: Logger;
     readonly tokenFactory: VerificationTokenFactory;
 
-    constructor(config: AppConfiguration, tokenFactory: VerificationTokenFactory) {
+    constructor(config: AppConfiguration, tokenFactory: VerificationTokenFactory, loggerFactory: LoggerFactory) {
         const configData = config.get();
-        const region: string = configData.aws.region;
-        const attributes: { [key: string]: string } = configData.auth.smsAttributes;
-        this.amazonSNS = new aws.SNS({ region });
+        const region = configData.aws.region;
+        const endpoint = configData.aws.sns.endpoint;
+        const attributes = configData.auth.smsAttributes;
+        this.amazonSNS = new aws.SNS({ region, endpoint });
         this.amazonSNS.setSMSAttributes({ attributes });
         this.tokenFactory = tokenFactory;
-        this.appName = configData.application.name;
-
+        this.logger = loggerFactory.getLogger(module);
         this.sendVerificationToken = this.sendVerificationToken.bind(this);
     }
 
     public sendVerificationToken(phoneNumber: string, token: string): void {
-        // todo: refactor to use local sns instance with switched urls in config rather than env detection
-        if (process.env.NODE_ENV === "development") {
-            this.logger.warn(`SMS is disabled with NODE_ENV == "development". Not sending token ${token} to phone number ${phoneNumber}.`);
-            return;
-        }
-
         const params: PublishInput = {
-            Message: `Your ${this.appName} token is: ${token}`,
+            Message: `Your Commoodity verification token is: ${token}`,
             PhoneNumber: `+${phoneNumber}`,
         };
 

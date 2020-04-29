@@ -8,7 +8,7 @@ export type ConfigurationData = typeof config;
 
 @injectable()
 export class AppConfiguration {
-    private config: ConfigurationData;
+    protected config: ConfigurationData;
 
     constructor() {
         let _config: ConfigurationData = config;
@@ -21,9 +21,10 @@ export class AppConfiguration {
     public getSrcPath(): string {
         return trimPath(__dirname, this.config.application.rootDir);
     }
+
     // todo: refactor this to more granular data
     public get(): ConfigurationData {
-        // only a shallow copy -- copying approach sucks
+        // return a shallow copy
         return { ...this.config };
     }
 }

@@ -2,10 +2,11 @@ import { isRight, isLeft } from "fp-ts/lib/Either";
 import * as t from "io-ts";
 import { validate } from "../../types";
 import { injectable } from "inversify";
+// eslint-disable-next-line import/default
 import camelcase from "camelcase";
 
 export type Primitive = number | string | boolean | null | undefined;
-export type Querier = { query: (sql: string, values: Primitive[]) => { rows: any[] } };
+export type Querier = { query: (sql: string, values: Primitive[]) => { rows: unknown[] } };
 export type Query = { query: string; values: Primitive[] };
 
 export interface Queriable {
@@ -68,6 +69,7 @@ export abstract class QueryClient {
     }
 
     // Performs shallow camelCasing -- used for converting between psql snake_cased columns and the camelCased keys used within the app
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private camelCase(data: any): any {
         if (typeof data === "object") {
             const result: Record<string, unknown> = {};

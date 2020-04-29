@@ -5,7 +5,6 @@ import { CreatedAt } from "../StandardTypes";
 export const UserId = t.exact(t.type({ id: UserTypes.UserId }));
 export type UserId = t.TypeOf<typeof UserId>;
 
-// todo: Refactor UserId to be `userId: UserTypes.UserId
 export const UserIdParam = t.exact(t.type({ userId: UserTypes.UserId }));
 export type UserIdParam = t.TypeOf<typeof UserIdParam>;
 
@@ -29,6 +28,7 @@ export const UserDetails = t.exact(
         CreatedAt,
         // Optional imageFile
         t.partial({
+            bio: t.union([t.nullType, t.string]),
             imageFile: t.union([t.nullType, t.string]),
         }),
     ]),

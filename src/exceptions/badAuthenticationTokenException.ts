@@ -1,5 +1,5 @@
 import ClientException from "./ClientException";
-import ErrorCodes from "../error/errorCodes";
+import ErrorCodes from "../error/ErrorCodes";
 
 export default class BadAuthenticationTokenException extends ClientException {
     constructor() {

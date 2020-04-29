@@ -1,15 +1,15 @@
 import express from "express";
 import Controller from "./Controller";
-import { validateBody, validateParams } from "../middleware/validation";
+import { validateBody, validateParams } from "../middleware/Validation";
 import UserDal from "../dal/user/UserDal";
-import { NextFunction } from "connect";
 import ServerException from "../exceptions/ServerException";
 import ClientException from "../exceptions/ClientException";
-import { LoggerFactory } from "../logger/loggerFactory";
+import { LoggerFactory } from "../logger/LoggerFactory";
 import { CreateUserDTO } from "../dto/user/CreateUserDto";
+import { UpdateBioDTO } from "../dto/user/UpdateBioDto";
 import { UserIdParam, UserDetails } from "../types/user/User";
 import { UserExistsDTO } from "../dto/user/UserExistsDto";
-import { ErrorResponse } from "../error/errorResponses";
+import { ErrorResponse } from "../error/ErrorResponses";
 import { VerifyUserDTO } from "../dto/user/VerifyUserDto";
 import { JWTManager } from "../jwt/JWTManager";
 import { LoginUserDTO } from "../dto/user/LoginUserDto";
@@ -22,13 +22,14 @@ import { requiredFile } from "../middleware/ImageUpload";
 import { ImageManager } from "../images/ImageManager";
 import NotFoundException from "../exceptions/NotFoundException";
 import { ChangePasswordDTO } from "../dto/user/ChangePasswordDto";
+import { Logger } from "winston";
 
 @injectable()
 export default class UserController implements Controller {
     public path = "/user";
     public router = express.Router();
     private USER_IMAGE_FILE = "image";
-    private logger = LoggerFactory.getLogger(module);
+    private logger: Logger;
 
     private userDal: UserDal;
     private verificationManager: VerificationManager;
@@ -42,12 +43,14 @@ export default class UserController implements Controller {
         jwtManager: JWTManager,
         auth: UserAuthentication,
         imageManager: ImageManager,
+        loggerFactory: LoggerFactory,
     ) {
         this.userDal = userDal;
         this.verificationManager = verificationManager;
         this.jwtManager = jwtManager;
         this.auth = auth;
         this.imageManager = imageManager;
+        this.logger = loggerFactory.getLogger(module);
         this.intializeRoutes();
     }
 
@@ -57,6 +60,7 @@ export default class UserController implements Controller {
         this.router.get("/logout", this.logoutUser);
         this.router.post("/", validateBody(CreateUserDTO), this.createUser);
         this.router.post("/image", this.auth.authenticate, requiredFile(this.USER_IMAGE_FILE), this.auth.withUser(this.submitUserImage));
+        this.router.post("/bio", this.auth.authenticate, validateBody(UpdateBioDTO), this.auth.withUser(this.submitUserBio));
         this.router.post("/login", validateBody(LoginUserDTO), this.loginUser);
         this.router.post("/verify", validateBody(VerifyUserDTO), this.verifyUser);
         this.router.post("/exists", validateBody(UserExistsDTO), this.checkUserExists);
@@ -121,7 +125,19 @@ export default class UserController implements Controller {
         }
     };
 
-    createUser = async (request: express.Request, response: express.Response, next: NextFunction): Promise<void> => {
+    submitUserBio = async (request: RequestWithUser, response: express.Response, next: express.NextFunction): Promise<void> => {
+        const userId = request.user.id;
+        const { bio } = request.body as UpdateBioDTO;
+        try {
+            await this.userDal.updateUserBio(userId, bio);
+            response.status(200).json({});
+        } catch (error) {
+            this.logger.error(`Error uploading user bio for userId ${userId}`, { error });
+            next(new ServerException(`Error uploading user bio for userId ${userId}`));
+        }
+    };
+
+    createUser = async (request: express.Request, response: express.Response, next: express.NextFunction): Promise<void> => {
         const newUser: CreateUserDTO = request.body;
         try {
             const token: string = this.verificationManager.tokenFactory.getVerificationToken();
@@ -141,7 +157,7 @@ export default class UserController implements Controller {
         }
     };
 
-    checkUserExists = async (request: express.Request, response: express.Response, next: NextFunction): Promise<void> => {
+    checkUserExists = async (request: express.Request, response: express.Response, next: express.NextFunction): Promise<void> => {
         const user: UserExistsDTO = request.body;
         try {
             const exists = await this.userDal.usernameExists(user.username);
@@ -153,7 +169,7 @@ export default class UserController implements Controller {
         }
     };
 
-    verifyUser = async (request: express.Request, response: express.Response, next: NextFunction): Promise<void> => {
+    verifyUser = async (request: express.Request, response: express.Response, next: express.NextFunction): Promise<void> => {
         const verificationRequest: VerifyUserDTO = request.body;
         try {
             const data: Either<ErrorResponse, UserDetails> = await this.userDal.verifyUser(verificationRequest);
@@ -172,7 +188,7 @@ export default class UserController implements Controller {
         }
     };
 
-    loginUser = async (request: express.Request, response: express.Response, next: NextFunction): Promise<void> => {
+    loginUser = async (request: express.Request, response: express.Response, next: express.NextFunction): Promise<void> => {
         const user: LoginUserDTO = request.body;
         try {
             const data: Either<ErrorResponse, UserDetails> = await this.userDal.checkPassword(user.username, user.password);

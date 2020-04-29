@@ -1,15 +1,15 @@
 import { createLogger, format, transports, Logger } from "winston";
 import { Format, Colorizer, TransformableInfo } from "logform";
-import { shrinkPath, removeExtension } from "./utils/path";
+import { shrinkPath, removeExtension } from "../utils/files";
 import { AppConfiguration } from "../config/Configuration";
-import { dependencies } from "../dependencies/inversify.config";
 import { injectable } from "inversify";
 
 const { combine, timestamp, printf, colorize } = format;
 
+// Visible for testing
 @injectable()
-class LoggerFactoryInternal {
-    private logger: Logger;
+export class LoggerFactory {
+    private seed: Logger;
     // Write all logs logLevel and below (error is 0, debug is 5)
     // https://github.com/winstonjs/winston#logging
     private logLevel: string;
@@ -23,7 +23,9 @@ class LoggerFactoryInternal {
         this.logLevel = configData.log.level;
         this.appName = configData.application.name;
         this.rootDir = configData.application.rootDir;
-        this.logger = this.buildLogger();
+        this.seed = this.buildLogger();
+        this.getLoggerForModule = this.getLoggerForModule.bind(this);
+        this.getLoggerWithContext = this.getLoggerWithContext.bind(this);
     }
 
     private buildLogger(): Logger {
@@ -65,14 +67,10 @@ class LoggerFactoryInternal {
 
     private getLoggerWithContext(context: string): Logger {
         const loggerOptions = context ? { context } : {};
-        return this.logger.child(loggerOptions);
+        return this.seed.child(loggerOptions);
     }
 
-    getLogger(context: string | NodeModule): Logger {
+    public getLogger(context: string | NodeModule): Logger {
         return typeof context === "string" ? this.getLoggerWithContext(context) : this.getLoggerForModule(context);
     }
 }
-
-// Create a singleton
-const LoggerFactory = dependencies.resolve(LoggerFactoryInternal);
-export { LoggerFactory, LoggerFactoryInternal };

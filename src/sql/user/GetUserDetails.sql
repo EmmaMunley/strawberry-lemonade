@@ -2,6 +2,7 @@ SELECT
     id,
     username,
     image_file,
+    bio,
     created_at,
     CASE WHEN image_file NOTNULL THEN
         TRUE

@@ -1,11 +1,43 @@
+import path from "path";
+
+// Return the file type with the '.' omitted, ie "cat.jpg" returns "jpg"
 export function getFileType(fileName: string): string {
-    // Return the file type with the '.' omitted, ie "cat.jpg" returns "jpg"
     const fileType = fileName.slice(fileName.lastIndexOf(".") + 1);
-    // todo: potentially check against a set of allowed filetypes here instead
     if (fileType.length === 0) {
         throw new Error(`Invalid fileType for fileName ${fileName}`);
     }
     return fileType;
+}
+
+/**
+ * Appends slash to start and end of string if not present
+ */
+function appendSlashes(str: string): string {
+    let res = str;
+    if (!str.startsWith("/")) {
+        res = "/" + res;
+    }
+    return res.endsWith("/") ? res : res + "/";
+}
+
+/*
+ * Shrinks the file path to begin from the last instance of the given dirName
+ * Example: shrinkPath("/User/Desktop/project/nodes/project/foo/bar.js", "project")
+ * returns "foo/bar.js"
+ */
+export function shrinkPath(directory: string, filePath: string): string {
+    if (directory.length === 0) {
+        throw new Error("Directory cannot have a length of  0");
+    }
+    const fp = path.normalize(filePath);
+    const dir = appendSlashes(path.normalize(directory));
+
+    const lastIndex = fp.lastIndexOf(dir);
+    if (lastIndex < 0) {
+        throw new Error(`File path ${fp} does not include directory ${dir}`);
+    }
+    const startIndex = lastIndex + dir.length;
+    return filePath.slice(startIndex);
 }
 
 /*
@@ -19,6 +51,7 @@ export function trimPath(path: string, dir: string): string {
     }
     return path.substring(0, idx + dir.length);
 }
+
 export function removeExtension(file: string): string {
     const lastIndex = file.lastIndexOf(".");
     if (lastIndex < 0) {

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import HttpException from "../exceptions/HttpException";
-import { ErrorResponse } from "../error/errorResponses";
+import { ErrorResponse } from "../error/ErrorResponses";
 
 export default function(error: HttpException, request: Request, response: Response, next: NextFunction): void {
     const status = error.status || 500;

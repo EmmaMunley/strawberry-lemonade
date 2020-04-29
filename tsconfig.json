@@ -1,15 +1,14 @@
 {
-        "compilerOptions": {
-                "target": "es6",
-                "module": "commonjs",
-                "outDir": "build",
-                "sourceMap": true,
-                // Required for sequelize-typescript annotations
-                "experimentalDecorators": true,
-                "emitDecoratorMetadata": true,
-                "esModuleInterop": true,
-                "strict": true
-        },
-        "include": ["src/**/*.ts"],
-        "exclude": ["node_modules", ".vscode"]
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "outDir": "build",
+        "sourceMap": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "esModuleInterop": true,
+        "strict": true
+    },
+    "include": ["src/**/*.ts", "test/**/*.ts", "tools/**/*.ts"],
+    "exclude": ["node_modules", ".vscode"]
 }

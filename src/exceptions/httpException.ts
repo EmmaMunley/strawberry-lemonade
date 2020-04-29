@@ -1,4 +1,4 @@
-import ErrorCodes from "../error/errorCodes";
+import ErrorCodes from "../error/ErrorCodes";
 
 class HttpException extends Error {
     status: number;

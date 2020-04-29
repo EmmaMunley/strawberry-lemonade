@@ -1,6 +1,6 @@
 import { CreateUserDTO } from "../../dto/user/CreateUserDto";
 import { User, UserId, UserDetails } from "../../types/user/User";
-import { ErrorResponse, usernameTaken, alreadyVerified, incorrectVerificationToken, incorrectPassword } from "../../error/errorResponses";
+import { ErrorResponse, usernameTaken, alreadyVerified, incorrectVerificationToken, incorrectPassword } from "../../error/ErrorResponses";
 import { Pool } from "../../database/pool/Pool";
 import { AppConfiguration } from "../../config/Configuration";
 import { injectable } from "inversify";
@@ -20,15 +20,20 @@ export default class UserDal {
     private queries: UserQueries;
     private logger: Logger;
 
-    constructor(queries: UserQueries, pool: Pool, config: AppConfiguration) {
+    constructor(queries: UserQueries, pool: Pool, config: AppConfiguration, loggerFactory: LoggerFactory) {
         this.queries = queries;
         this.pool = pool;
         this.saltRounds = config.get().auth.saltRounds;
-        this.logger = LoggerFactory.getLogger(module);
+        this.logger = loggerFactory.getLogger(module);
     }
 
     public async updateUserImage(userId: string, imageFile: string): Promise<void> {
         const query = this.queries.updateUserImage(userId, imageFile);
+        await this.pool.returningNone(query);
+    }
+
+    public async updateUserBio(userId: string, bio: string): Promise<void> {
+        const query = this.queries.updateUserBio(userId, bio);
         await this.pool.returningNone(query);
     }
 
@@ -114,6 +119,7 @@ export default class UserDal {
             imageExists: user.imageExists,
             imageFile: user.imageFile,
             createdAt: user.createdAt,
+            bio: user.bio,
         };
     }
 }

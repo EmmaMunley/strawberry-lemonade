@@ -1,10 +1,22 @@
 export const config = {
+    mood: {
+        moodCalculationIntervalSeconds: 10,
+        submissionTimeoutMinutes: 0.5,
+        moodWindowMinutes: 60,
+    },
+    posts: {
+        maxPostsPerFetch: 100,
+        postExpirationMinutes: 60,
+    },
+    communities: {
+        maxCommunitiesPerFetch: 50,
+    },
     log: {
         level: "debug",
     },
     // Name of the application
     application: {
-        name: "bliss-registry",
+        name: "commoodity",
         rootDir: "src",
         sqlDir: "sql",
     },
@@ -22,11 +34,47 @@ export const config = {
         },
     },
     postgres: {
-        tableNames: {
-            usersTable: "users",
+        tables: {
+            usersTable: {
+                name: "users",
+                timestampsEnabled: true,
+            },
+            communitiesTable: {
+                name: "communities",
+                timestampsEnabled: true,
+            },
+            membersTable: {
+                name: "members",
+                timestampsEnabled: true,
+            },
+            postsTable: {
+                name: "posts",
+                timestampsEnabled: true,
+            },
+            moodsTable: {
+                name: "community_moods",
+                timestampsEnabled: true,
+            },
+            moodsHistoryTable: {
+                name: "community_moods_history",
+                timestampsEnabled: true,
+            },
+            postCommunitiesTable: {
+                name: "post_communities",
+                timestampsEnabled: true,
+            },
+            likesTable: {
+                name: "likes",
+                timestampsEnabled: true,
+            },
+        },
+        viewNames: {
+            membersDetailed: "members_detailed",
+            likesDetailed: "likes_detailed",
+            postsDetailed: "posts_detailed",
         },
         pool: {
-            database: "bliss-registry",
+            database: "commoodity",
             user: "postgres",
             password: "password",
             host: "localhost",
@@ -41,7 +89,10 @@ export const config = {
         region: "us-east-1",
         s3: {
             url: "http://localhost:4572",
-            bucket: "bliss-registry",
+            bucket: "commoodity",
+        },
+        sns: {
+            endpoint: "http://localhost:4575",
         },
     },
     verification: {

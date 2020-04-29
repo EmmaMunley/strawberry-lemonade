@@ -1,10 +1,11 @@
 import multer = require("multer");
 import { RequestHandler, Request, Response, NextFunction } from "express";
-import ErrorCodes from "../error/errorCodes";
+import ErrorCodes from "../error/ErrorCodes";
 import ValidationException from "../exceptions/ValidationException";
 import { LoggerFactory } from "../logger/LoggerFactory";
+import { dependencies } from "../dependencies/inversify.config";
 
-const logger = LoggerFactory.getLogger(module);
+const logger = dependencies.resolve(LoggerFactory).getLogger(module);
 
 export function optionalFile(fileName: string): RequestHandler {
     return multer().single(fileName);

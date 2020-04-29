@@ -1,5 +1,5 @@
 import HttpException from "./HttpException";
-import ErrorCodes from "../error/errorCodes";
+import ErrorCodes from "../error/ErrorCodes";
 
 export default class ClientException extends HttpException {
     constructor(message: string, errorCodes?: ErrorCodes[]) {

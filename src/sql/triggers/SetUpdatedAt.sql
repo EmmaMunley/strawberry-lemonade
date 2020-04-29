@@ -1,6 +1,6 @@
 DO $$
 DECLARE
-    table_names text ARRAY DEFAULT ARRAY['users'];
+    table_names text ARRAY DEFAULT ARRAY['users', 'communities', 'posts'];
     table_name text;
 BEGIN
     FOREACH table_name IN ARRAY table_names LOOP

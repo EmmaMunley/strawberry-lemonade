@@ -7,16 +7,22 @@ import { injectable } from "inversify";
 import { QueryClient, Queriable, Query, Primitive } from "./QueryClient";
 import { timestampToSwiftApprovedFormat } from "../../utils/date";
 import { LoggerFactory } from "../../logger/LoggerFactory";
+import { Logger } from "winston";
 
 @injectable()
 export class Pool extends QueryClient implements Queriable {
     private pool: PgPool;
-    private logger = LoggerFactory.getLogger(module);
+    private logger: Logger;
 
-    constructor(config: AppConfiguration) {
+    constructor(config: AppConfiguration, loggerFactory: LoggerFactory) {
         super();
         this.disableTimestampParsing();
         this.pool = new PgPool(config.get().postgres.pool);
+        this.logger = loggerFactory.getLogger(module);
+    }
+
+    async close(): Promise<void> {
+        await this.pool.end();
     }
 
     printStats(): void {
@@ -24,10 +30,6 @@ export class Pool extends QueryClient implements Queriable {
         this.logger.info(`Total: ${this.pool.totalCount}`);
         this.logger.info(`Idle: ${this.pool.idleCount}`);
         this.logger.info(`Waiting: ${this.pool.waitingCount}`);
-    }
-
-    async close(): Promise<void> {
-        await this.pool.end();
     }
 
     async getConnection(): Promise<PoolClient> {

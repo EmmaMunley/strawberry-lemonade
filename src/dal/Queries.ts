@@ -10,9 +10,9 @@ export abstract class Queries {
     protected logger: Logger;
     private sqlPath: string;
 
-    constructor(config: AppConfiguration) {
+    constructor(config: AppConfiguration, loggerFactory: LoggerFactory) {
         const { sqlDir } = config.get().application;
-        this.logger = LoggerFactory.getLogger(module);
+        this.logger = loggerFactory.getLogger(module);
         this.sqlPath = join(config.getSrcPath(), sqlDir);
     }
 
@@ -37,8 +37,8 @@ export class CategorizedQueries extends Queries {
     private queryDir: string;
 
     // To explain why we need the unmanaged annotation, this is a base class and https://github.com/inversify/InversifyJS/issues/522
-    constructor(config: AppConfiguration, @unmanaged() queryDir: string) {
-        super(config);
+    constructor(config: AppConfiguration, loggerFactory: LoggerFactory, @unmanaged() queryDir: string) {
+        super(config, loggerFactory);
         this.queryDir = queryDir;
     }
 

@@ -1,4 +1,4 @@
-import ErrorCodes from "./errorCodes";
+import ErrorCodes from "./ErrorCodes";
 
 export interface ErrorResponse {
     message: string;
@@ -44,6 +44,34 @@ export function usernameTaken(username?: string): ErrorResponse {
     return {
         message: "Username is taken" + (username ? ": " + username : ""),
         errorCodes: [ErrorCodes.usernameTaken],
+    };
+}
+
+export function communityNameTaken(communityName?: string): ErrorResponse {
+    return {
+        message: "Community name is taken" + (communityName ? ": " + communityName : ""),
+        errorCodes: [ErrorCodes.communityNameTaken],
+    };
+}
+
+export function userNotInCommunity(userId: string): ErrorResponse {
+    return {
+        message: `User id ${userId} is not a member of one or more of the provided communities`,
+        errorCodes: [ErrorCodes.userNotInCommunity],
+    };
+}
+
+export function noActiveMood(userId: string, communityId: string): ErrorResponse {
+    return {
+        message: `User id ${userId} does not have an active mood in community id ${communityId}`,
+        errorCodes: [ErrorCodes.noActiveMood],
+    };
+}
+
+export function cannotSubmitMood(userId: string, communityId: string): ErrorResponse {
+    return {
+        message: `Cannot submit mood for user id ${userId} andcommunity id ${communityId}`,
+        errorCodes: [ErrorCodes.cannotSubmitMood],
     };
 }
 
