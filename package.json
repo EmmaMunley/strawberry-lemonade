@@ -1,8 +1,11 @@
 {
-    "name": "ts-backend-template",
+    "name": "bliss-registry-backend",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
+    "engines": {
+        "node": "~12"
+    },
     "scripts": {
         "start": "node -r ts-node/register ./src/server.ts",
         "start:dev": "node --inspect=5858 -r ts-node/register ./src/server.ts",
