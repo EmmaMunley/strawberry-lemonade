@@ -16,23 +16,31 @@ export class Wayfair implements Scraper {
 
     public async scrape(url: string, userId: string): Promise<RegistryItem[]> {
         try {
-            let wayfairId = await this.registryIdCache.get(userId);
-            if (wayfairId === undefined) {
-                wayfairId = await this.getWayfairRegistryId(url);
-                this.registryIdCache.set(userId, wayfairId);
-                this.logger.info(`Wayfair cache miss!`);
-            } else {
-                this.logger.info(`Wayfair cache hit!`);
-            }
+            const wayfairId = await this.getWayfairRegistryId(url, userId);
             const registryItems = await this.getWayfairRegistryItems(wayfairId);
             return registryItems;
         } catch (error) {
             // todo: return an either type with an error code
+            this.logger.error(`error scraping wayfair`, { error });
             return [];
         }
     }
 
-    private async getWayfairRegistryId(url: string): Promise<number> {
+    private async getWayfairRegistryId(url: string, userId: string): Promise<number> {
+        let wayfairId = await this.registryIdCache.get(userId);
+
+        if (wayfairId === undefined) {
+            wayfairId = await this._getWayfairRegistryId(url);
+            this.registryIdCache.set(userId, wayfairId);
+            this.logger.info(`Wayfair cache miss!`);
+        } else {
+            this.logger.info(`Wayfair cache hit!`);
+        }
+        this.logger.info(`wayfairId:${wayfairId}`);
+        return wayfairId;
+    }
+
+    private async _getWayfairRegistryId(url: string): Promise<number> {
         const res = await axios.get(url, {
             headers: {
                 "User-Agent": CHROME_USER_AGENT,

@@ -20,7 +20,7 @@ export class Wayfair implements Scraper {
     public async scrape(url: string): Promise<RegistryItem[]> {
         try {
             const html = await this.getWayfairRegistryHTML(url);
-            // this.logger.info(`html: ${html}`);
+            this.logger.info(`html: ${html}`);
             fs.writeFileSync("./wayfair.html", html, "utf8");
 
             return [];

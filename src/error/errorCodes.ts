@@ -9,6 +9,8 @@ enum ErrorCodes {
     invalidIsVerified = "invalid/isVerified",
     invalidFile = "invalid/file",
     invalidCount = "invalid/count",
+    invalidRegistryUrl = "invalid/registryUrl",
+    invalidRegistrySource = "invalid/registrySource",
     // Conflict
     usernameTaken = "conflict/username-taken",
     userNotFound = "conflict/user-notFound",

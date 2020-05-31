@@ -20,6 +20,7 @@ export class Database extends Queries {
     }
     private async initializeTables(): Promise<void> {
         await this.pool.query(this.loadQuery("user", "CreateUsersTable"));
+        await this.pool.query(this.loadQuery("registry", "CreateRegistryTable"));
     }
     private async initializeExtensions(): Promise<void> {
         await this.pool.query(this.loadQuery("extensions", "CreateUUIDExtension"));
