@@ -10,6 +10,7 @@ import { validateBody } from "../middleware/validation";
 import RegistryDal from "../dal/registry/RegistryDal";
 import ServerException from "../exceptions/ServerException";
 import ClientException from "../exceptions/ClientException";
+import { DeleteRegistryDTO } from "../dto/registry/DeleteRegistryDto";
 
 @injectable()
 export default class UserController implements Controller {
@@ -31,6 +32,7 @@ export default class UserController implements Controller {
     public intializeRoutes(): void {
         this.router.get("/", this.auth.authenticate, this.auth.withUser(this.getRegistry));
         this.router.post("/", this.auth.authenticate, validateBody(AddRegistryDTO), this.auth.withUser(this.addRegistry));
+        this.router.delete("/", this.auth.authenticate, validateBody(DeleteRegistryDTO), this.auth.withUser(this.deleteRegistry));
     }
 
     getRegistry = async (request: RequestWithUser, response: express.Response, next: express.NextFunction): Promise<void> => {
@@ -60,6 +62,20 @@ export default class UserController implements Controller {
         } catch (error) {
             this.logger.error(`Error adding registry`, { error });
             next(new ServerException("Error adding registry"));
+        }
+    };
+
+    deleteRegistry = async (request: RequestWithUser, response: express.Response, next: express.NextFunction): Promise<void> => {
+        const user = request.user;
+        const { registrySource } = request.body as DeleteRegistryDTO;
+
+        try {
+            await this.registryDal.deleteRegistry(user.id, registrySource);
+            this.logger.info(`Success deleting registry with source ${registrySource} for user ${user.username}`);
+            response.status(200).json({});
+        } catch (error) {
+            this.logger.error(`Error deleting registry`, { error });
+            next(new ServerException("Error deleting registry"));
         }
     };
 }

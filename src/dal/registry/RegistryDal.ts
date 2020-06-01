@@ -23,4 +23,9 @@ export default class RegistryDal {
         const query = this.queries.getRegistry(userId);
         return await this.pool.returningMaybeOne(query, RegistryUrl);
     }
+
+    async deleteRegistry(userId: string, source: RegistrySource): Promise<void> {
+        const query = this.queries.deleteRegistry(userId, source);
+        await this.pool.returningNone(query);
+    }
 }
