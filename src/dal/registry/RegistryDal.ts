@@ -2,7 +2,7 @@ import { Pool } from "../../database/pool/Pool";
 import { injectable } from "inversify";
 import { RegistryQueries } from "./RegistryQueries";
 import { RegistrySource } from "../../types/registry/RegistryTypes";
-import { RegistryUrl } from "../../types/registry/Registry";
+import { Registry } from "../../types/registry/Registry";
 
 @injectable()
 export default class RegistryDal {
@@ -19,9 +19,9 @@ export default class RegistryDal {
         await this.pool.returningNone(query);
     }
 
-    async getRegistry(userId: string): Promise<RegistryUrl | undefined> {
-        const query = this.queries.getRegistry(userId);
-        return await this.pool.returningMaybeOne(query, RegistryUrl);
+    async getRegistries(userId: string): Promise<Registry[]> {
+        const query = this.queries.getRegistries(userId);
+        return await this.pool.returningMany(query, Registry);
     }
 
     async deleteRegistry(userId: string, source: RegistrySource): Promise<void> {

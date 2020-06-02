@@ -1,0 +1,97 @@
+/* eslint-disable @typescript-eslint/camelcase */
+import { Scraper, CHROME_USER_AGENT } from "./Scraper";
+import { RegistryItem } from "../types/registry/Registry";
+import { injectable } from "inversify";
+import puppeteer from "puppeteer";
+import cheerio from "cheerio";
+import axios from "axios";
+import { RegistrySource } from "../types/registry/RegistryTypes";
+import { LoggerFactory } from "../logger/LoggerFactory";
+import fs from "fs";
+import { format } from "path";
+import { formatUrl } from "../utils/parsing";
+
+@injectable()
+export class BedBath implements Scraper {
+    private static IGNORABLE_RESOURCE_TYPES = ["font", "image"];
+    // private static REGISTRY_SELECTOR = "body";
+    private static REGISTRY_SELECTOR = "div.pb25";
+    private static REGISTRY_LOAD_TIMEOUT_MS = 5000;
+    private logger = LoggerFactory.getLogger(module);
+
+    public async scrape(url: string): Promise<RegistryItem[]> {
+        try {
+            const html = await this.getBedBathRegistryHTML(url);
+            const products = this.parseBedBathRegistryHTML(html);
+            return products;
+        } catch (error) {
+            this.logger.error(`error fetching html`, { error });
+            // todo: return an either type with an error code
+            return [];
+        }
+    }
+
+    private async getBedBathRegistryHTML(url: string): Promise<string> {
+        const browser = await puppeteer.launch({ headless: false });
+        const page = await browser.newPage();
+
+        await page.setRequestInterception(true);
+        // Improve page load times by skipping useless requests
+        page.on("request", request => {
+            if (BedBath.IGNORABLE_RESOURCE_TYPES.includes(request.resourceType())) {
+                request.abort();
+            } else {
+                request.continue();
+            }
+        });
+        await page.goto(url);
+        await page.waitFor(BedBath.REGISTRY_SELECTOR, { visible: true, timeout: BedBath.REGISTRY_LOAD_TIMEOUT_MS });
+
+        const registryHtml = await page.$eval(BedBath.REGISTRY_SELECTOR, e => e.innerHTML);
+        await page.close();
+
+        return registryHtml.toString();
+    }
+
+    private parseBedBathRegistryHTML(registryHtml: string): RegistryItem[] {
+        const $ = cheerio.load(registryHtml);
+        const items: RegistryItem[] = [];
+
+        $("div[data-sku]").each((_, productHTML) => {
+            const item = this.formatItem(productHTML);
+            items.push(item);
+        });
+
+        return items;
+    }
+
+    private formatItem(product: CheerioElement): RegistryItem {
+        const $ = cheerio.load(product);
+        const title = $("header a").text() as string;
+        let url = $("header a").attr("href") as string;
+
+        url = formatUrl("www.bedbathandbeyond.com", url);
+        const priceText = $("[class^=Price]")
+            .children()
+            .first()
+            .text();
+        const price = Number(priceText.replace("$", ""));
+        const img = $("img").attr("src") as string;
+        const quantityText = $("div.pb2 span[class^='ProductGridTile']").text();
+
+        const neededIdx = quantityText.indexOf("Requested:") + "Requested:".length + 1;
+        const purchasedIdx = quantityText.indexOf("Purchased:") + "Purchased:".length + 1;
+        const needed = Number(quantityText[neededIdx]);
+        const purchased = Number(quantityText[purchasedIdx]);
+
+        return {
+            title,
+            img,
+            price,
+            needed,
+            purchased,
+            url,
+            source: RegistrySource.BedBath,
+        };
+    }
+}

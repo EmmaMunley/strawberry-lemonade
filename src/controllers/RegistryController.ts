@@ -4,13 +4,13 @@ import { UserAuthentication } from "../middleware/UserAuthentication";
 import Controller from "./Controller";
 import { injectable } from "inversify";
 import { RequestWithUser } from "../types/request/RequestWithUser";
-import { Wayfair } from "../scrapers/Wayfair";
 import { AddRegistryDTO } from "../dto/registry/AddRegistryDto";
 import { validateBody } from "../middleware/validation";
 import RegistryDal from "../dal/registry/RegistryDal";
 import ServerException from "../exceptions/ServerException";
 import ClientException from "../exceptions/ClientException";
 import { DeleteRegistryDTO } from "../dto/registry/DeleteRegistryDto";
+import Scrapers from "../scrapers/Scrapers";
 
 @injectable()
 export default class UserController implements Controller {
@@ -18,14 +18,14 @@ export default class UserController implements Controller {
     public router = express.Router();
     private logger = LoggerFactory.getLogger(module);
 
-    private wayfairScraper: Wayfair;
+    private scrapers: Scrapers;
     private registryDal: RegistryDal;
     private auth: UserAuthentication;
 
-    constructor(auth: UserAuthentication, registryDal: RegistryDal, wayfairScraper: Wayfair) {
+    constructor(auth: UserAuthentication, registryDal: RegistryDal, scrapers: Scrapers) {
         this.auth = auth;
         this.registryDal = registryDal;
-        this.wayfairScraper = wayfairScraper;
+        this.scrapers = scrapers;
         this.intializeRoutes();
     }
 
@@ -38,12 +38,8 @@ export default class UserController implements Controller {
     getRegistry = async (request: RequestWithUser, response: express.Response, next: express.NextFunction): Promise<void> => {
         const user = request.user;
         try {
-            const registryUrlResponse = await this.registryDal.getRegistry(user.id);
-            if (!registryUrlResponse) {
-                next(new ClientException(`User has no registry`));
-                return;
-            }
-            const products = await this.wayfairScraper.scrape(registryUrlResponse.url, user.id);
+            const registries = await this.registryDal.getRegistries(user.id);
+            const products = await this.scrapers.getAllRegistryItems(user.id, registries);
             response.json(products);
         } catch (error) {
             this.logger.error(`Error getting registry`, { error });

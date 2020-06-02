@@ -1,5 +1,5 @@
 import * as t from "io-ts";
-import { RegistryUrlInternal } from "./RegistryTypes";
+import { RegistryUrlInternal, RegistrySourceInternal } from "./RegistryTypes";
 
 export const RegistryItem = t.type({
     title: t.string,
@@ -16,3 +16,9 @@ export const RegistryUrl = t.type({
     url: RegistryUrlInternal,
 });
 export type RegistryUrl = t.TypeOf<typeof RegistryUrl>;
+
+export const Registry = t.type({
+    url: RegistryUrlInternal,
+    source: RegistrySourceInternal,
+});
+export type Registry = t.TypeOf<typeof Registry>;
