@@ -4,5 +4,5 @@ export function parseNumberOrDefault(input: any, fallback: number): number {
 }
 
 export function formatUrl(domain: string, url: string): string {
-    return url.includes(domain) ? url : `${domain}${url}`;
+    return url.includes(domain) ? url : `${domain}/${url}`;
 }
