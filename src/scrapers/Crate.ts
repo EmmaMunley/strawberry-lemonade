@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import { Scraper, IGNORABLE_RESOURCE_TYPES } from "./Scraper";
+import { Scraper } from "./Scraper";
 import { RegistryItem } from "../types/registry/Registry";
 import { injectable } from "inversify";
 import puppeteer from "puppeteer";
@@ -9,16 +9,17 @@ import { LoggerFactory } from "../logger/LoggerFactory";
 import { formatUrl } from "../utils/parsing";
 
 @injectable()
-export class BedBath implements Scraper {
+export class Crate implements Scraper {
+    private static IGNORABLE_RESOURCE_TYPES = ["font", "image"];
     // private static REGISTRY_SELECTOR = "body";
-    private static REGISTRY_SELECTOR = "div.pb25";
+    private static REGISTRY_SELECTOR = ".tab-panel-container";
     private static REGISTRY_LOAD_TIMEOUT_MS = 5000;
     private logger = LoggerFactory.getLogger(module);
 
     public async scrape(url: string): Promise<RegistryItem[]> {
         try {
-            const html = await this.getBedBathRegistryHTML(url);
-            const products = this.parseBedBathRegistryHTML(html);
+            const html = await this.getCrateRegistryHTML(url);
+            const products = this.parseCrateRegistryHTML(html);
             return products;
         } catch (error) {
             this.logger.error(`error fetching html`, { error });
@@ -27,34 +28,34 @@ export class BedBath implements Scraper {
         }
     }
 
-    private async getBedBathRegistryHTML(url: string): Promise<string> {
+    private async getCrateRegistryHTML(url: string): Promise<string> {
         const browser = await puppeteer.launch({ headless: false });
         const page = await browser.newPage();
 
         await page.setRequestInterception(true);
         // Improve page load times by skipping useless requests
         page.on("request", request => {
-            if (IGNORABLE_RESOURCE_TYPES.includes(request.resourceType())) {
+            if (Crate.IGNORABLE_RESOURCE_TYPES.includes(request.resourceType())) {
                 request.abort();
             } else {
                 request.continue();
             }
         });
         await page.goto(url);
-        await page.waitFor(BedBath.REGISTRY_SELECTOR, { visible: true, timeout: BedBath.REGISTRY_LOAD_TIMEOUT_MS });
+        await page.waitFor(Crate.REGISTRY_SELECTOR, { visible: true, timeout: Crate.REGISTRY_LOAD_TIMEOUT_MS });
 
-        const registryHtml = await page.$eval(BedBath.REGISTRY_SELECTOR, e => e.innerHTML);
+        const registryHtml = await page.$eval(Crate.REGISTRY_SELECTOR, e => e.innerHTML);
         await page.close();
         await browser.close();
 
         return registryHtml.toString();
     }
 
-    private parseBedBathRegistryHTML(registryHtml: string): RegistryItem[] {
+    private parseCrateRegistryHTML(registryHtml: string): RegistryItem[] {
         const $ = cheerio.load(registryHtml);
         const items: RegistryItem[] = [];
 
-        $("div[data-sku]").each((_, productHTML) => {
+        $(".list-item-container").each((_, productHTML) => {
             const item = this.formatItem(productHTML);
             items.push(item);
         });
@@ -64,23 +65,27 @@ export class BedBath implements Scraper {
 
     private formatItem(product: CheerioElement): RegistryItem {
         const $ = cheerio.load(product);
-        const title = $("header a").text() as string;
-        let url = $("header a").attr("href") as string;
 
-        url = formatUrl("www.bedbathandbeyond.com", url);
-        const priceText = $("[class^=Price]")
-            .children()
-            .first()
-            .text();
+        console.log("test", $);
+        const title = $(".list-item-title")
+            .text()
+            .trim() as string;
+        let url = "www.crateandbeyond.com"; // todo get real url
+
+        url = formatUrl("www.crateandbeyond.com", url);
+        const priceText = $(".list-item-price")
+            .text()
+            .trim();
         const price = Number(priceText.replace("$", ""));
         const img = $("img").attr("src") as string;
-        const quantityText = $("div.pb2 span[class^='ProductGridTile']").text();
-
-        const neededIdx = quantityText.indexOf("Requested:") + "Requested:".length + 1;
-        const purchasedIdx = quantityText.indexOf("Purchased:") + "Purchased:".length + 1;
-        const needed = Number(quantityText[neededIdx]);
-        const purchased = Number(quantityText[purchasedIdx]);
-
+        const neededText = $("div.wants-has-container span.item-wants")
+            .text()
+            .trim();
+        const needed = Number(neededText.replace(/\D/g, ""));
+        const purchasedText = $("span.item-has")
+            .text()
+            .trim();
+        const purchased = Number(purchasedText.replace(/\D/g, ""));
         return {
             title,
             img,
@@ -88,7 +93,7 @@ export class BedBath implements Scraper {
             needed,
             purchased,
             url,
-            source: RegistrySource.BedBath,
+            source: RegistrySource.Crate,
         };
     }
 }

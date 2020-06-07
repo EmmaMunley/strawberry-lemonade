@@ -7,10 +7,19 @@ export enum RegistrySource {
     Amazon = "Amazon",
     Target = "Target",
     BedBath = "BedBath",
+    Macys = "Macys",
+    Crate = "Crate",
 }
 
 // to do: clean up registry source typing
-const RegistryHostNames = new Set(["www.wayfair.com", "www.target.com", "www.amazon.com", "www.bedbathandbeyond.com"]);
+const RegistryHostNames = new Set([
+    "www.wayfair.com",
+    "www.target.com",
+    "www.amazon.com",
+    "www.bedbathandbeyond.com",
+    "www.macys.com",
+    "www.crateandbarrel.com",
+]);
 
 const isValidRegistryUrl = (registryUrl: string): boolean => {
     try {

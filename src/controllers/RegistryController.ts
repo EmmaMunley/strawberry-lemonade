@@ -8,7 +8,6 @@ import { AddRegistryDTO } from "../dto/registry/AddRegistryDto";
 import { validateBody } from "../middleware/validation";
 import RegistryDal from "../dal/registry/RegistryDal";
 import ServerException from "../exceptions/ServerException";
-import ClientException from "../exceptions/ClientException";
 import { DeleteRegistryDTO } from "../dto/registry/DeleteRegistryDto";
 import Scrapers from "../scrapers/Scrapers";
 
