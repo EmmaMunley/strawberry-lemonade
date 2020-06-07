@@ -7,19 +7,27 @@ import { Registry, RegistryItem } from "../types/registry/Registry";
 import { Macys } from "./Macys";
 import { Crate } from "./Crate";
 import { Target } from "./Target";
+import { Amazon } from "./Amazon";
 
 @injectable()
 export default class Scrapers {
     private sourceScrapers: { [key in RegistrySource]?: Scraper };
 
-    constructor(wayfairScraper: Wayfair, bedBathScraper: BedBath, targetScaper: Target, macysScraper: Macys, crateScraper: Crate) {
+    constructor(
+        wayfairScraper: Wayfair,
+        bedBathScraper: BedBath,
+        targetScaper: Target,
+        macysScraper: Macys,
+        crateScraper: Crate,
+        amazonScraper: Amazon,
+    ) {
         this.sourceScrapers = {
             [RegistrySource.Wayfair]: wayfairScraper,
             [RegistrySource.BedBath]: bedBathScraper,
             [RegistrySource.Macys]: macysScraper,
             [RegistrySource.Crate]: crateScraper,
             // todo: replace with real scrapers
-            [RegistrySource.Amazon]: wayfairScraper,
+            [RegistrySource.Amazon]: amazonScraper,
             [RegistrySource.Target]: targetScaper,
         };
     }
