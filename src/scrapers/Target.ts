@@ -11,8 +11,7 @@ import axios from "axios";
 export class Target implements Scraper {
     private static GET_ITEMS_URL = "https://api.target.com/registry_items_availabilities/v2/giftgivers/";
     private static WEBSITE = "https://www.target.com/";
-    private static ASSETS_PREFIX_URL = "https://assets.targetimg1.com/ui/";
-    private static ASSETS_SUFFIXES = ["home", "client", "content", "vendor"];
+
     private static STORE_ID = 3990;
     private apiKey?: string;
     private logger = LoggerFactory.getLogger(module);
@@ -78,17 +77,6 @@ export class Target implements Scraper {
 
     private containsApiKey = (requestUrl: string): boolean => {
         return requestUrl.includes("&key=") || requestUrl.includes("?key=");
-    };
-
-    private isAllowedNetworkRequest = (requestUrl: string): boolean => {
-        if (!requestUrl) {
-            return false;
-        }
-        // Allow base website
-        if (requestUrl === Target.WEBSITE) {
-            return true;
-        }
-        return Target.ASSETS_SUFFIXES.some(suffix => requestUrl.startsWith(Target.ASSETS_PREFIX_URL + suffix));
     };
 
     private setApiKey = (apiKey: string): void => {

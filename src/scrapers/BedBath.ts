@@ -6,11 +6,10 @@ import puppeteer from "puppeteer";
 import cheerio from "cheerio";
 import { RegistrySource } from "../types/registry/RegistryTypes";
 import { LoggerFactory } from "../logger/LoggerFactory";
-import { formatUrl } from "../utils/parsing";
+import { formatUrl, formatPrice } from "../utils/parsing";
 
 @injectable()
 export class BedBath implements Scraper {
-    // private static REGISTRY_SELECTOR = "body";
     private static REGISTRY_SELECTOR = "div.pb25";
     private static REGISTRY_LOAD_TIMEOUT_MS = 5000;
     private logger = LoggerFactory.getLogger(module);
@@ -72,10 +71,9 @@ export class BedBath implements Scraper {
             .children()
             .first()
             .text();
-        const price = Number(priceText.replace("$", ""));
+        const price = formatPrice(priceText);
         const img = $("img").attr("src") as string;
         const quantityText = $("div.pb2 span[class^='ProductGridTile']").text();
-
         const neededIdx = quantityText.indexOf("Requested:") + "Requested:".length + 1;
         const purchasedIdx = quantityText.indexOf("Purchased:") + "Purchased:".length + 1;
         const needed = Number(quantityText[neededIdx]);

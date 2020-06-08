@@ -7,7 +7,7 @@ import cheerio from "cheerio";
 import qs from "querystringify";
 import { RegistrySource } from "../types/registry/RegistryTypes";
 import { LoggerFactory } from "../logger/LoggerFactory";
-import { formatPrice } from "../utils/parsing";
+import { formatPrice, parseBetweenStrings, formatQty } from "../utils/parsing";
 
 @injectable()
 export class Amazon implements Scraper {
@@ -18,7 +18,6 @@ export class Amazon implements Scraper {
     public async scrape(url: string): Promise<RegistryItem[]> {
         try {
             const amazonId = this.parseAmazonRegistryId(url);
-            console.log("amazonId", amazonId);
             const html = await this.getAmazonRegistryHTML(amazonId);
             const products = this.parseAmazonRegistryHTML(html);
             return products;
@@ -33,10 +32,8 @@ export class Amazon implements Scraper {
         const prefixRegex = /\?.*/g;
         const suffixRegex = /.*\/registry\//g;
 
-        let registryId = requestUrl;
-        registryId = registryId.replace(prefixRegex, "");
-        registryId = registryId.replace(suffixRegex, "");
-        return registryId;
+        const amazonId = parseBetweenStrings(requestUrl, prefixRegex, suffixRegex);
+        return amazonId;
     };
 
     private async getAmazonRegistryHTML(registryId: string): Promise<string> {
@@ -80,8 +77,10 @@ export class Amazon implements Scraper {
             .trim();
         const price = formatPrice(priceText);
         const img = $("img").attr("src") as string;
-        const needed = Number($("div").attr("data-wr-product-card-qty-needed"));
-        const purchased = Number($("div").attr("data-wr-product-card-qty-needed"));
+        const neededText = $("div").attr("data-wr-product-card-qty-needed") as string;
+        const needed = formatQty(neededText);
+        const purchasedText = $("div").attr("data-wr-product-card-qty-needed") as string;
+        const purchased = formatQty(purchasedText);
         const url = `${Amazon.WEBSITE}/dp/${productASIN}`;
 
         return {
