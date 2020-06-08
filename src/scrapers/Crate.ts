@@ -3,7 +3,6 @@ import { Scraper } from "./Scraper";
 import { RegistryItem } from "../types/registry/Registry";
 import { injectable } from "inversify";
 import puppeteer from "puppeteer";
-import cheerio from "cheerio";
 import { RegistrySource } from "../types/registry/RegistryTypes";
 import { LoggerFactory } from "../logger/LoggerFactory";
 import { formatUrl } from "../utils/parsing";
@@ -11,7 +10,6 @@ import { formatUrl } from "../utils/parsing";
 @injectable()
 export class Crate implements Scraper {
     private static IGNORABLE_RESOURCE_TYPES = ["font", "image"];
-    // private static REGISTRY_SELECTOR = "body";
     private static REGISTRY_SELECTOR = ".tab-panel-container";
     private static REGISTRY_LOAD_TIMEOUT_MS = 5000;
     private logger = LoggerFactory.getLogger(module);
@@ -19,13 +17,20 @@ export class Crate implements Scraper {
     public async scrape(url: string): Promise<RegistryItem[]> {
         try {
             const html = await this.getCrateRegistryHTML(url);
-            const products = this.parseCrateRegistryHTML(html);
+            const products = this.getProducts(html);
             return products;
         } catch (error) {
             this.logger.error(`error fetching html`, { error });
             // todo: return an either type with an error code
             return [];
         }
+    }
+
+    private getProducts(doc: string): RegistryItem[] {
+        const script = this.getScriptTag(doc);
+        const registryData = this.getRegistryData(script);
+        const registryItems = this.getRegistryItems(registryData);
+        return registryItems;
     }
 
     private async getCrateRegistryHTML(url: string): Promise<string> {
@@ -43,56 +48,42 @@ export class Crate implements Scraper {
         });
         await page.goto(url);
         await page.waitFor(Crate.REGISTRY_SELECTOR, { visible: true, timeout: Crate.REGISTRY_LOAD_TIMEOUT_MS });
-
-        const registryHtml = await page.$eval(Crate.REGISTRY_SELECTOR, e => e.innerHTML);
+        const doc = (await page.evaluate("new XMLSerializer().serializeToString(document.doctype) + document.documentElement.outerHTML")) as string;
         await page.close();
         await browser.close();
-
-        return registryHtml.toString();
+        return doc;
     }
 
-    private parseCrateRegistryHTML(registryHtml: string): RegistryItem[] {
-        const $ = cheerio.load(registryHtml);
-        const items: RegistryItem[] = [];
-
-        $(".list-item-container").each((_, productHTML) => {
-            const item = this.formatItem(productHTML);
-            items.push(item);
-        });
-
-        return items;
+    private getScriptTag(doc: string): string {
+        const matches = doc.match(/<!-- Begin Client Side Data-->.*<!-- End Client Side Data-->/s);
+        if (!matches || !matches.length) {
+            throw new Error("Error parsing C&B script tag");
+        }
+        return matches[0];
     }
 
-    private formatItem(product: CheerioElement): RegistryItem {
-        const $ = cheerio.load(product);
+    private getRegistryData(script: string): string {
+        const matches = script.match(/"Items": \[\n.+\],\n/gs);
+        if (!matches || !matches.length) {
+            throw new Error("Error parsing C&B registry items");
+        }
+        return matches[0];
+    }
 
-        console.log("test", $);
-        const title = $(".list-item-title")
-            .text()
-            .trim() as string;
-        let url = "www.crateandbeyond.com"; // todo get real url
+    private getRegistryItems(data: string): RegistryItem[] {
+        const registry = data.slice(9, data.length - 2);
+        const registryItems = JSON.parse(registry);
+        return registryItems.map(this.formatItem);
+    }
 
-        url = formatUrl("www.crateandbeyond.com", url);
-        const priceText = $(".list-item-price")
-            .text()
-            .trim();
-        const price = Number(priceText.replace("$", ""));
-        const img = $("img").attr("src") as string;
-        const neededText = $("div.wants-has-container span.item-wants")
-            .text()
-            .trim();
-        const needed = Number(neededText.replace(/\D/g, ""));
-        const purchasedText = $("span.item-has")
-            .text()
-            .trim();
-        const purchased = Number(purchasedText.replace(/\D/g, ""));
+    private formatItem(product: any): RegistryItem {
         return {
-            title,
-            img,
-            price,
-            needed,
-            purchased,
-            url,
+            title: product.Title,
+            img: product.ImageUrl,
+            price: product.Price.CurrentAsDecimal,
+            needed: product.WantsQuantity,
+            purchased: product.HasQuantity,
+            url: formatUrl("www.crateandbarrel.com", product.NavigateUrl),
             source: RegistrySource.Crate,
         };
     }

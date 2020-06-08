@@ -4,7 +4,15 @@ export function parseNumberOrDefault(input: any, fallback: number): number {
 }
 
 export function formatUrl(domain: string, url: string): string {
-    return url.includes(domain) ? url : `${domain}/${url}`;
+    if (url.includes(domain)) {
+        return url;
+    } else {
+        if (url.startsWith("/")) {
+            return `${domain}${url}`;
+        } else {
+            return `${domain}/${url}`;
+        }
+    }
 }
 
 export function formatPrice(price: string): number {
