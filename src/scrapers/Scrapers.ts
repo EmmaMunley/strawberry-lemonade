@@ -1,14 +1,16 @@
 import { injectable } from "inversify";
 import { Scraper } from "./Scraper";
 import { Wayfair } from "./Wayfair";
-import { BedBath } from "./BedBath";
+import { BedBathAndBeyond } from "./BedBathAndBeyond";
 import { RegistrySource } from "../types/registry/RegistryTypes";
 import { Registry, RegistryItem, RegistryUrl } from "../types/registry/Registry";
 import { Macys } from "./Macys";
-import { Crate } from "./Crate";
+import { CrateAndBarrel } from "./CrateAndBarrel";
 import { Target } from "./Target";
 import { Amazon } from "./Amazon";
 import { WilliamsSonoma } from "./WilliamsSonoma";
+import { RestorationHardware } from "./RestorationHardware";
+import { Walmart } from "./Walmart";
 
 @injectable()
 export default class Scrapers {
@@ -16,21 +18,25 @@ export default class Scrapers {
 
     constructor(
         wayfairScraper: Wayfair,
-        bedBathScraper: BedBath,
+        bedBathAndBeyondScraper: BedBathAndBeyond,
         targetScaper: Target,
         macysScraper: Macys,
-        crateScraper: Crate,
+        crateAndBarrelScraper: CrateAndBarrel,
         amazonScraper: Amazon,
-        williamsScraper: WilliamsSonoma,
+        williamsSonomaScraper: WilliamsSonoma,
+        restorationHardwareScraper: RestorationHardware,
+        walmartScraper: Walmart,
     ) {
         this.sourceScrapers = {
             [RegistrySource.Wayfair]: wayfairScraper,
-            [RegistrySource.BedBath]: bedBathScraper,
+            [RegistrySource.BedBathAndBeyond]: bedBathAndBeyondScraper,
             [RegistrySource.Macys]: macysScraper,
-            [RegistrySource.Crate]: crateScraper,
+            [RegistrySource.CrateAndBarrel]: crateAndBarrelScraper,
             [RegistrySource.Amazon]: amazonScraper,
             [RegistrySource.Target]: targetScaper,
-            [RegistrySource.WilliamsSonoma]: williamsScraper,
+            [RegistrySource.WilliamsSonoma]: williamsSonomaScraper,
+            [RegistrySource.RestorationHardware]: restorationHardwareScraper,
+            [RegistrySource.Walmart]: walmartScraper,
         };
     }
 

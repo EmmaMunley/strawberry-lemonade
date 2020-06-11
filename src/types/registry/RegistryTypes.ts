@@ -6,10 +6,12 @@ export enum RegistrySource {
     Wayfair = "Wayfair",
     Amazon = "Amazon",
     Target = "Target",
-    BedBath = "BedBath",
+    BedBathAndBeyond = "BedBathAndBeyond",
     Macys = "Macys",
-    Crate = "Crate",
+    CrateAndBarrel = "CrateAndBarrel",
     WilliamsSonoma = "WilliamsSonoma",
+    RestorationHardware = "RestorationHardware",
+    Walmart = "Walmart",
 }
 
 // to do: clean up registry source typing
@@ -21,6 +23,8 @@ const RegistryHostNames = new Set([
     "www.macys.com",
     "www.crateandbarrel.com",
     "www.williams-sonoma.com",
+    "www.rhmodern.com",
+    "www.walmart.com",
 ]);
 
 const isValidRegistryUrl = (registryUrl: string): boolean => {
@@ -28,6 +32,7 @@ const isValidRegistryUrl = (registryUrl: string): boolean => {
         const hostname = url.parse(registryUrl, true).hostname;
         return hostname !== null && RegistryHostNames.has(hostname);
     } catch (error) {
+        console.log(error);
         return false;
     }
 };
