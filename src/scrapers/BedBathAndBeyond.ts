@@ -9,15 +9,15 @@ import { LoggerFactory } from "../logger/LoggerFactory";
 import { formatUrl, formatPrice } from "../utils/parsing";
 
 @injectable()
-export class BedBath implements Scraper {
+export class BedBathAndBeyond implements Scraper {
     private static REGISTRY_SELECTOR = "div.pb25";
     private static REGISTRY_LOAD_TIMEOUT_MS = 5000;
     private logger = LoggerFactory.getLogger(module);
 
     public async scrape(url: string): Promise<RegistryItem[]> {
         try {
-            const html = await this.getBedBathRegistryHTML(url);
-            const products = this.parseBedBathRegistryHTML(html);
+            const html = await this.getBedBathAndBeyondRegistryHTML(url);
+            const products = this.parseBedBathAndBeyondRegistryHTML(html);
             return products;
         } catch (error) {
             this.logger.error(`error fetching html`, { error });
@@ -26,7 +26,7 @@ export class BedBath implements Scraper {
         }
     }
 
-    private async getBedBathRegistryHTML(url: string): Promise<string> {
+    private async getBedBathAndBeyondRegistryHTML(url: string): Promise<string> {
         const browser = await puppeteer.launch({ headless: false });
         const page = await browser.newPage();
 
@@ -40,16 +40,16 @@ export class BedBath implements Scraper {
             }
         });
         await page.goto(url);
-        await page.waitFor(BedBath.REGISTRY_SELECTOR, { visible: true, timeout: BedBath.REGISTRY_LOAD_TIMEOUT_MS });
+        await page.waitFor(BedBathAndBeyond.REGISTRY_SELECTOR, { visible: true, timeout: BedBathAndBeyond.REGISTRY_LOAD_TIMEOUT_MS });
 
-        const registryHtml = await page.$eval(BedBath.REGISTRY_SELECTOR, e => e.innerHTML);
+        const registryHtml = await page.$eval(BedBathAndBeyond.REGISTRY_SELECTOR, e => e.innerHTML);
         await page.close();
         await browser.close();
 
         return registryHtml.toString();
     }
 
-    private parseBedBathRegistryHTML(registryHtml: string): RegistryItem[] {
+    private parseBedBathAndBeyondRegistryHTML(registryHtml: string): RegistryItem[] {
         const $ = cheerio.load(registryHtml);
         const items: RegistryItem[] = [];
 
@@ -86,7 +86,7 @@ export class BedBath implements Scraper {
             needed,
             purchased,
             url,
-            source: RegistrySource.BedBath,
+            source: RegistrySource.BedBathAndBeyond,
         };
     }
 }

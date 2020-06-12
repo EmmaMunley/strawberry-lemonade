@@ -8,7 +8,7 @@ import { LoggerFactory } from "../logger/LoggerFactory";
 import { formatUrl } from "../utils/parsing";
 
 @injectable()
-export class Crate implements Scraper {
+export class CrateAndBarrel implements Scraper {
     private static IGNORABLE_RESOURCE_TYPES = ["font", "image"];
     private static REGISTRY_SELECTOR = ".tab-panel-container";
     private static REGISTRY_LOAD_TIMEOUT_MS = 5000;
@@ -16,7 +16,7 @@ export class Crate implements Scraper {
 
     public async scrape(url: string): Promise<RegistryItem[]> {
         try {
-            const html = await this.getCrateRegistryHTML(url);
+            const html = await this.getCrateAndBarrelRegistryHTML(url);
             const products = this.getProducts(html);
             return products;
         } catch (error) {
@@ -33,21 +33,21 @@ export class Crate implements Scraper {
         return registryItems;
     }
 
-    private async getCrateRegistryHTML(url: string): Promise<string> {
+    private async getCrateAndBarrelRegistryHTML(url: string): Promise<string> {
         const browser = await puppeteer.launch({ headless: false });
         const page = await browser.newPage();
 
         await page.setRequestInterception(true);
         // Improve page load times by skipping useless requests
         page.on("request", request => {
-            if (Crate.IGNORABLE_RESOURCE_TYPES.includes(request.resourceType())) {
+            if (CrateAndBarrel.IGNORABLE_RESOURCE_TYPES.includes(request.resourceType())) {
                 request.abort();
             } else {
                 request.continue();
             }
         });
         await page.goto(url);
-        await page.waitFor(Crate.REGISTRY_SELECTOR, { visible: true, timeout: Crate.REGISTRY_LOAD_TIMEOUT_MS });
+        await page.waitFor(CrateAndBarrel.REGISTRY_SELECTOR, { visible: true, timeout: CrateAndBarrel.REGISTRY_LOAD_TIMEOUT_MS });
         const doc = (await page.evaluate("new XMLSerializer().serializeToString(document.doctype) + document.documentElement.outerHTML")) as string;
         await page.close();
         await browser.close();
@@ -84,7 +84,7 @@ export class Crate implements Scraper {
             needed: product.WantsQuantity,
             purchased: product.HasQuantity,
             url: formatUrl("www.crateandbarrel.com", product.NavigateUrl),
-            source: RegistrySource.Crate,
+            source: RegistrySource.CrateAndBarrel,
         };
     }
 }

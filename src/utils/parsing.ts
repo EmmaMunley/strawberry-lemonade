@@ -16,7 +16,8 @@ export function formatUrl(domain: string, url: string): string {
 }
 
 export function formatPrice(price: string): number {
-    return Number(price.replace(/[^0-9.]/g, ""));
+    const formattedPrice = Number(price.replace(/[^0-9.]/g, ""));
+    return Number(formattedPrice.toFixed(2));
 }
 
 export function formatQty(qty: string): number {
