@@ -10,6 +10,7 @@ import RegistryDal from "../dal/registry/RegistryDal";
 import ServerException from "../exceptions/ServerException";
 import { DeleteRegistryDTO } from "../dto/registry/DeleteRegistryDto";
 import Scrapers from "../scrapers/Scrapers";
+import RegistryItemDal from "../dal/registry_item/RegistryItemDal";
 
 @injectable()
 export default class UserController implements Controller {
@@ -19,34 +20,60 @@ export default class UserController implements Controller {
 
     private scrapers: Scrapers;
     private registryDal: RegistryDal;
+    private registryItemDal: RegistryItemDal;
     private auth: UserAuthentication;
 
-    constructor(auth: UserAuthentication, registryDal: RegistryDal, scrapers: Scrapers) {
+    constructor(
+        auth: UserAuthentication,
+        registryDal: RegistryDal,
+        registryItemDal: RegistryItemDal,
+        scrapers: Scrapers,
+    ) {
         this.auth = auth;
         this.registryDal = registryDal;
+        this.registryItemDal = registryItemDal;
         this.scrapers = scrapers;
         this.intializeRoutes();
     }
 
     public intializeRoutes(): void {
         this.router.get("/", this.auth.authenticate, this.auth.withUser(this.getRegistry));
-        this.router.post("/", this.auth.authenticate, validateBody(AddRegistryDTO), this.auth.withUser(this.addRegistry));
-        this.router.delete("/", this.auth.authenticate, validateBody(DeleteRegistryDTO), this.auth.withUser(this.deleteRegistry));
+        this.router.post(
+            "/",
+            this.auth.authenticate,
+            validateBody(AddRegistryDTO),
+            this.auth.withUser(this.addRegistry),
+        );
+        this.router.delete(
+            "/",
+            this.auth.authenticate,
+            validateBody(DeleteRegistryDTO),
+            this.auth.withUser(this.deleteRegistry),
+        );
     }
 
-    getRegistry = async (request: RequestWithUser, response: express.Response, next: express.NextFunction): Promise<void> => {
+    getRegistry = async (
+        request: RequestWithUser,
+        response: express.Response,
+        next: express.NextFunction,
+    ): Promise<void> => {
         const user = request.user;
         try {
             const registries = await this.registryDal.getRegistries(user.id);
-            const products = await this.scrapers.getAllRegistryItems(user.id, registries);
-            response.json(products);
+            const registryItems = await this.scrapers.getAllRegistryItems(user.id, registries);
+            await this.registryItemDal.addRegistryItems(user.id, registryItems);
+            response.json(registryItems);
         } catch (error) {
             this.logger.error(`Error getting registry`, { error });
             next(new ServerException("Error getting registry"));
         }
     };
 
-    addRegistry = async (request: RequestWithUser, response: express.Response, next: express.NextFunction): Promise<void> => {
+    addRegistry = async (
+        request: RequestWithUser,
+        response: express.Response,
+        next: express.NextFunction,
+    ): Promise<void> => {
         const user = request.user;
         const { registryUrl, registrySource } = request.body as AddRegistryDTO;
 
@@ -60,7 +87,11 @@ export default class UserController implements Controller {
         }
     };
 
-    deleteRegistry = async (request: RequestWithUser, response: express.Response, next: express.NextFunction): Promise<void> => {
+    deleteRegistry = async (
+        request: RequestWithUser,
+        response: express.Response,
+        next: express.NextFunction,
+    ): Promise<void> => {
         const user = request.user;
         const { registrySource } = request.body as DeleteRegistryDTO;
 
