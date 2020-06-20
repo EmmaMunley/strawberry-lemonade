@@ -13,15 +13,9 @@ export class Walmart implements Scraper {
     private static GET_ID_REGEX = /id\=[\w\-]+/;
 
     public async scrape(url: string): Promise<RegistryItem[]> {
-        try {
-            const walmartId = this.getWalmartIdFromUrl(url);
-            const registryItems = await this.getWalmartRegistryItems(walmartId);
-            return registryItems;
-        } catch (error) {
-            // todo: return an either type with an error code
-            this.logger.error(`error scraping Walmart`, { error });
-            return [];
-        }
+        const walmartId = this.getWalmartIdFromUrl(url);
+        const registryItems = await this.getWalmartRegistryItems(walmartId);
+        return registryItems;
     }
 
     private getWalmartIdFromUrl(url: string): string {

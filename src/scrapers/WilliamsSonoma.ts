@@ -17,15 +17,9 @@ export class WilliamsSonoma implements Scraper {
     private logger = LoggerFactory.getLogger(module);
 
     public async scrape(url: string): Promise<RegistryItem[]> {
-        try {
-            const html = await this.getWilliamsSonomaRegistryHTML(url);
-            const products = this.parseWilliamsSonomaRegistryHTML(html);
-            return products;
-        } catch (error) {
-            this.logger.error(`error fetching html`, { error });
-            // todo: return an either type with an error code
-            return [];
-        }
+        const html = await this.getWilliamsSonomaRegistryHTML(url);
+        const products = this.parseWilliamsSonomaRegistryHTML(html);
+        return products;
     }
 
     private async getWilliamsSonomaRegistryHTML(url: string): Promise<string> {
@@ -42,7 +36,10 @@ export class WilliamsSonoma implements Scraper {
             }
         });
         await page.goto(url);
-        await page.waitFor(WilliamsSonoma.WAIT_FOR_SELECTOR, { visible: true, timeout: WilliamsSonoma.REGISTRY_LOAD_TIMEOUT_MS });
+        await page.waitFor(WilliamsSonoma.WAIT_FOR_SELECTOR, {
+            visible: true,
+            timeout: WilliamsSonoma.REGISTRY_LOAD_TIMEOUT_MS,
+        });
         const registryHtml = await page.$eval(WilliamsSonoma.REGISTRY_SELECTOR, e => e.innerHTML);
         await page.close();
         await browser.close();

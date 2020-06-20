@@ -17,18 +17,12 @@ export class Target implements Scraper {
     private logger = LoggerFactory.getLogger(module);
 
     public async scrape(url: string): Promise<RegistryItem[]> {
-        try {
-            if (!this.apiKey) {
-                await this.refreshApiKey();
-            }
-            const targetId = this.parseTargetRegistryId(url);
-            const registryItems = await this.getTargetRegistryItems(targetId);
-            return registryItems;
-        } catch (error) {
-            // todo: return an either type with an error code
-            this.logger.error(`error scraping Target`, { error });
-            return [];
+        if (!this.apiKey) {
+            await this.refreshApiKey();
         }
+        const targetId = this.parseTargetRegistryId(url);
+        const registryItems = await this.getTargetRegistryItems(targetId);
+        return registryItems;
     }
 
     private parseTargetRegistryId = (requestUrl: string): string => {
@@ -55,7 +49,9 @@ export class Target implements Scraper {
         const browser = await puppeteer.launch({ headless: false });
         const page = await browser.newPage();
 
-        await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36");
+        await page.setUserAgent(
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36",
+        );
         await page.setRequestInterception(true);
         page.on("request", request => {
             const requestUrl = request.url();

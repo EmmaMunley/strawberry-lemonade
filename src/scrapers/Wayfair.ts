@@ -15,15 +15,9 @@ export class Wayfair implements Scraper {
     private logger = LoggerFactory.getLogger(module);
 
     public async scrape(url: string, userId: string): Promise<RegistryItem[]> {
-        try {
-            const wayfairId = await this.getWayfairRegistryId(url, userId);
-            const registryItems = await this.getWayfairRegistryItems(wayfairId);
-            return registryItems;
-        } catch (error) {
-            // todo: return an either type with an error code
-            this.logger.error(`error scraping wayfair`, { error });
-            return [];
-        }
+        const wayfairId = await this.getWayfairRegistryId(url, userId);
+        const registryItems = await this.getWayfairRegistryItems(wayfairId);
+        return registryItems;
     }
 
     private async getWayfairRegistryId(url: string, userId: string): Promise<number> {
@@ -32,11 +26,11 @@ export class Wayfair implements Scraper {
         if (wayfairId === undefined) {
             wayfairId = await this._getWayfairRegistryId(url);
             this.registryIdCache.set(userId, wayfairId);
-            this.logger.info(`Wayfair cache miss!`);
+            // this.logger.info(`Wayfair cache miss!`);
         } else {
-            this.logger.info(`Wayfair cache hit!`);
+            // this.logger.info(`Wayfair cache hit!`);
         }
-        this.logger.info(`wayfairId:${wayfairId}`);
+        // this.logger.info(`wayfairId:${wayfairId}`);
         return wayfairId;
     }
 

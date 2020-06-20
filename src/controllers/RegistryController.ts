@@ -61,7 +61,7 @@ export default class UserController implements Controller {
         try {
             const registries = await this.registryDal.getRegistries(user.id);
             const registryItems = await this.scrapers.getAllRegistryItems(user.id, registries);
-            await this.registryItemDal.addRegistryItems(user.id, registryItems);
+            await this.registryItemDal.updateRegistryItems(user.id, registryItems);
             response.json(registryItems);
         } catch (error) {
             this.logger.error(`Error getting registry`, { error });

@@ -2,6 +2,7 @@ import { Pool } from "../../database/pool/Pool";
 import { injectable } from "inversify";
 import { RegistryItemQueries } from "./RegistryItemQueries";
 import { RegistryItem } from "../../types/registry/Registry";
+import { RegistrySource } from "../../types/registry/RegistryTypes";
 
 @injectable()
 export default class RegistryItemDal {
@@ -13,18 +14,23 @@ export default class RegistryItemDal {
         this.pool = pool;
     }
 
-    async getRegistryItems(userId: string): Promise<RegistryItem[]> {
-        const query = this.queries.getRegistryItems(userId);
+    async getRegistryItems(userId: string, source: RegistrySource): Promise<RegistryItem[]> {
+        const query = this.queries.getRegistryItems(userId, source);
         return await this.pool.returningMany(query, RegistryItem);
     }
 
-    async addRegistryItems(userId: string, items: RegistryItem[]): Promise<void> {
-        const query = this.queries.addRegistryItems(userId, items);
-        await this.pool.returningNone(query);
-    }
-
-    async deleteRegistryItems(userId: string): Promise<void> {
-        const query = this.queries.deleteRegistryItems(userId);
-        await this.pool.returningNone(query);
+    async updateRegistryItems(userId: string, items: RegistryItem[]): Promise<void> {
+        const transaction = await this.pool.transaction();
+        await transaction.begin();
+        try {
+            const deleteItemsQuery = this.queries.deleteRegistryItems(userId);
+            const addItemsQuery = this.queries.addRegistryItems(userId, items);
+            await transaction.returningNone(deleteItemsQuery);
+            await transaction.returningNone(addItemsQuery);
+            await transaction.commit();
+        } catch (error) {
+            await transaction.rollback();
+            throw error;
+        }
     }
 }

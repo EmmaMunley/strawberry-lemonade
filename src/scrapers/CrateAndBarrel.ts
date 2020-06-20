@@ -15,15 +15,9 @@ export class CrateAndBarrel implements Scraper {
     private logger = LoggerFactory.getLogger(module);
 
     public async scrape(url: string): Promise<RegistryItem[]> {
-        try {
-            const html = await this.getCrateAndBarrelRegistryHTML(url);
-            const products = this.getProducts(html);
-            return products;
-        } catch (error) {
-            this.logger.error(`error fetching html`, { error });
-            // todo: return an either type with an error code
-            return [];
-        }
+        const html = await this.getCrateAndBarrelRegistryHTML(url);
+        const products = this.getProducts(html);
+        return products;
     }
 
     private getProducts(doc: string): RegistryItem[] {
@@ -47,8 +41,13 @@ export class CrateAndBarrel implements Scraper {
             }
         });
         await page.goto(url);
-        await page.waitFor(CrateAndBarrel.REGISTRY_SELECTOR, { visible: true, timeout: CrateAndBarrel.REGISTRY_LOAD_TIMEOUT_MS });
-        const doc = (await page.evaluate("new XMLSerializer().serializeToString(document.doctype) + document.documentElement.outerHTML")) as string;
+        await page.waitFor(CrateAndBarrel.REGISTRY_SELECTOR, {
+            visible: true,
+            timeout: CrateAndBarrel.REGISTRY_LOAD_TIMEOUT_MS,
+        });
+        const doc = (await page.evaluate(
+            "new XMLSerializer().serializeToString(document.doctype) + document.documentElement.outerHTML",
+        )) as string;
         await page.close();
         await browser.close();
         return doc;

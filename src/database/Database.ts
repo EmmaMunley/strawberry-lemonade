@@ -16,12 +16,16 @@ export class Database extends Queries {
         await this.initializeExtensions();
         await this.initializeFunctions();
         await this.initializeTables();
+        await this.initializeViews();
         await this.initializeTriggers();
     }
     private async initializeTables(): Promise<void> {
         await this.pool.query(this.loadQuery("user", "CreateUsersTable"));
         await this.pool.query(this.loadQuery("registry", "CreateRegistryTable"));
-        await this.pool.query(this.loadQuery("registry", "CreateRegistryItemTable"));
+        await this.pool.query(this.loadQuery("registry_item", "CreateRegistryItemTable"));
+    }
+    private async initializeViews(): Promise<void> {
+        await this.pool.query(this.loadQuery("registry_item", "CreateRegistryItemView"));
     }
     private async initializeExtensions(): Promise<void> {
         await this.pool.query(this.loadQuery("extensions", "CreateUUIDExtension"));

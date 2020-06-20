@@ -3,6 +3,7 @@ import { Query } from "../../database/pool/QueryClient";
 import { CategorizedQueries } from "../Queries";
 import { AppConfiguration } from "../../config/Configuration";
 import { RegistryItem } from "../../types/registry/Registry";
+import { RegistrySource } from "../../types/registry/RegistryTypes";
 
 @injectable()
 export class RegistryItemQueries extends CategorizedQueries {
@@ -17,8 +18,8 @@ export class RegistryItemQueries extends CategorizedQueries {
         this.deleteRegistryItemsQuery = this.loadSQLFile("DeleteRegistryItems");
     }
 
-    public getRegistryItems(userId: string): Query {
-        return { query: this.getRegistryItemsQuery, values: [userId] };
+    public getRegistryItems(userId: string, source: RegistrySource): Query {
+        return { query: this.getRegistryItemsQuery, values: [userId, source] };
     }
 
     public addRegistryItems(userId: string, items: RegistryItem[]): Query {
@@ -50,15 +51,16 @@ export class RegistryItemQueries extends CategorizedQueries {
 
     private getValueString(numCols: number, numRows: number): string {
         const values = [];
-        for (let i = 0; i <= numCols; i++) {
+        for (let i = 0; i < numRows; i++) {
             // Single row
             const rowVals = [];
-            for (let j = 0; j <= numRows; j++) {
-                rowVals.push(`$${i * j + 1}`);
+            for (let j = 0; j < numCols; j++) {
+                rowVals.push(`$${i * numCols + j + 1}`);
             }
-            const row = rowVals.join(", ");
+            // Example row: ($1, $2, $3, $4)
+            const row = `(${rowVals.join(", ")})`;
             values.push(row);
         }
-        return values.join(",");
+        return values.join(", ");
     }
 }

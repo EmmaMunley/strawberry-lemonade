@@ -15,15 +15,9 @@ export class BedBathAndBeyond implements Scraper {
     private logger = LoggerFactory.getLogger(module);
 
     public async scrape(url: string): Promise<RegistryItem[]> {
-        try {
-            const html = await this.getBedBathAndBeyondRegistryHTML(url);
-            const products = this.parseBedBathAndBeyondRegistryHTML(html);
-            return products;
-        } catch (error) {
-            this.logger.error(`error fetching html`, { error });
-            // todo: return an either type with an error code
-            return [];
-        }
+        const html = await this.getBedBathAndBeyondRegistryHTML(url);
+        const products = this.parseBedBathAndBeyondRegistryHTML(html);
+        return products;
     }
 
     private async getBedBathAndBeyondRegistryHTML(url: string): Promise<string> {
@@ -40,7 +34,10 @@ export class BedBathAndBeyond implements Scraper {
             }
         });
         await page.goto(url);
-        await page.waitFor(BedBathAndBeyond.REGISTRY_SELECTOR, { visible: true, timeout: BedBathAndBeyond.REGISTRY_LOAD_TIMEOUT_MS });
+        await page.waitFor(BedBathAndBeyond.REGISTRY_SELECTOR, {
+            visible: true,
+            timeout: BedBathAndBeyond.REGISTRY_LOAD_TIMEOUT_MS,
+        });
 
         const registryHtml = await page.$eval(BedBathAndBeyond.REGISTRY_SELECTOR, e => e.innerHTML);
         await page.close();

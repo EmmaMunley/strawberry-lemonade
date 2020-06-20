@@ -1,6 +1,12 @@
 import { CreateUserDTO } from "../../dto/user/CreateUserDto";
 import { User, UserId, UserDetails } from "../../types/user/User";
-import { ErrorResponse, usernameTaken, alreadyVerified, incorrectVerificationToken, incorrectPassword } from "../../error/errorResponses";
+import {
+    ErrorResponse,
+    usernameTaken,
+    alreadyVerified,
+    incorrectVerificationToken,
+    incorrectPassword,
+} from "../../error/errorResponses";
 import { Pool } from "../../database/pool/Pool";
 import { AppConfiguration } from "../../config/Configuration";
 import { injectable } from "inversify";
@@ -61,7 +67,10 @@ export default class UserDal {
         return hashed;
     }
 
-    public async createUser(user: CreateUserDTO, verificationToken: string): Promise<Either<ErrorResponse, UserDetails>> {
+    public async createUser(
+        user: CreateUserDTO,
+        verificationToken: string,
+    ): Promise<Either<ErrorResponse, UserDetails>> {
         const transaction = await this.pool.transaction();
         await transaction.begin();
         try {

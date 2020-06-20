@@ -16,16 +16,10 @@ export class Amazon implements Scraper {
     private static GIFTCARD = "B01E5XD8OM";
 
     public async scrape(url: string): Promise<RegistryItem[]> {
-        try {
-            const amazonId = this.parseAmazonRegistryId(url);
-            const html = await this.getAmazonRegistryHTML(amazonId);
-            const products = this.parseAmazonRegistryHTML(html);
-            return products;
-        } catch (error) {
-            this.logger.error(`error fetching html`, { error });
-            // todo: return an either type with an error code
-            return [];
-        }
+        const amazonId = this.parseAmazonRegistryId(url);
+        const html = await this.getAmazonRegistryHTML(amazonId);
+        const products = this.parseAmazonRegistryHTML(html);
+        return products;
     }
 
     private parseAmazonRegistryId = (requestUrl: string): string => {

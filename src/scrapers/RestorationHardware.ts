@@ -17,15 +17,9 @@ export class RestorationHardware implements Scraper {
     private logger = LoggerFactory.getLogger(module);
 
     public async scrape(url: string): Promise<RegistryItem[]> {
-        try {
-            const html = await this.getRestorationHardwareRegistryHTML(url);
-            const products = this.parseRestorationHardwareRegistryHTML(html);
-            return products;
-        } catch (error) {
-            this.logger.error(`error fetching html`, { error });
-            // todo: return an either type with an error code
-            return [];
-        }
+        const html = await this.getRestorationHardwareRegistryHTML(url);
+        const products = this.parseRestorationHardwareRegistryHTML(html);
+        return products;
     }
 
     private async getRestorationHardwareRegistryHTML(url: string): Promise<string> {
