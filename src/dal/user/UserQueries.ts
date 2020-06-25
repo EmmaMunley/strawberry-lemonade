@@ -9,10 +9,10 @@ export class UserQueries extends CategorizedQueries {
     private updateUserPasswordQuery: string;
     private updateUserImageQuery: string;
     private getUserIdQuery: string;
-    private usernameExistsQuery: string;
+    private emailExistsQuery: string;
     private createUserQuery: string;
     private getUserByIdQuery: string;
-    private getUserByUsernameQuery: string;
+    private getUserByEmailQuery: string;
     private verifyUserQuery: string;
 
     constructor(config: AppConfiguration) {
@@ -21,10 +21,10 @@ export class UserQueries extends CategorizedQueries {
         this.updateUserPasswordQuery = this.loadSQLFile("UpdatePassword");
         this.updateUserImageQuery = this.loadSQLFile("UpdateImage");
         this.getUserIdQuery = this.loadSQLFile("GetUserId");
-        this.usernameExistsQuery = this.loadSQLFile("UsernameExists");
+        this.emailExistsQuery = this.loadSQLFile("EmailExists");
         this.createUserQuery = this.loadSQLFile("CreateUser");
         this.getUserByIdQuery = this.loadSQLFile("GetUserById");
-        this.getUserByUsernameQuery = this.loadSQLFile("GetUserByUsername");
+        this.getUserByEmailQuery = this.loadSQLFile("GetUserByEmail");
         this.verifyUserQuery = this.loadSQLFile("VerifyUser");
     }
 
@@ -40,24 +40,24 @@ export class UserQueries extends CategorizedQueries {
         return { query: this.updateUserImageQuery, values: [userId, imageFile] };
     }
 
-    public getUserId(username: string): Query {
-        return { query: this.getUserIdQuery, values: [username] };
+    public getUserId(email: string): Query {
+        return { query: this.getUserIdQuery, values: [email] };
     }
 
-    public usernameExists(username: string): Query {
-        return { query: this.usernameExistsQuery, values: [username] };
+    public emailExists(email: string): Query {
+        return { query: this.emailExistsQuery, values: [email] };
     }
 
-    public createUser(username: string, password: string, phoneNumber: string, verificationToken: string): Query {
-        return { query: this.createUserQuery, values: [username, password, phoneNumber, verificationToken] };
+    public createUser(email: string, password: string, phoneNumber: string, verificationToken: string): Query {
+        return { query: this.createUserQuery, values: [email, password, phoneNumber, verificationToken] };
     }
 
     public getUserById(userId: string): Query {
         return { query: this.getUserByIdQuery, values: [userId] };
     }
 
-    public getUserByUsername(username: string): Query {
-        return { query: this.getUserByUsernameQuery, values: [username] };
+    public getUserByEmail(email: string): Query {
+        return { query: this.getUserByEmailQuery, values: [email] };
     }
 
     public verifyUser(userId: string): Query {

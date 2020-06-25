@@ -53,23 +53,42 @@ export default class UserController implements Controller {
 
     public intializeRoutes(): void {
         this.router.get("/:userId", this.auth.authenticate, validateParams(UserIdParam), this.getUser);
-        this.router.get("/:userId/image", this.auth.authenticate, validateParams(UserIdParam), this.auth.withUser(this.getUserImage));
+        this.router.get(
+            "/:userId/image",
+            this.auth.authenticate,
+            validateParams(UserIdParam),
+            this.auth.withUser(this.getUserImage),
+        );
         this.router.get("/logout", this.logoutUser);
         this.router.post("/", validateBody(CreateUserDTO), this.createUser);
-        this.router.post("/image", this.auth.authenticate, requiredFile(this.USER_IMAGE_FILE), this.auth.withUser(this.submitUserImage));
+        this.router.post(
+            "/image",
+            this.auth.authenticate,
+            requiredFile(this.USER_IMAGE_FILE),
+            this.auth.withUser(this.submitUserImage),
+        );
         this.router.post("/login", validateBody(LoginUserDTO), this.loginUser);
         this.router.post("/verify", validateBody(VerifyUserDTO), this.verifyUser);
         this.router.post("/exists", validateBody(UserExistsDTO), this.checkUserExists);
-        this.router.post("/password", this.auth.authenticate, validateBody(ChangePasswordDTO), this.auth.withUser(this.changePassword));
+        this.router.post(
+            "/password",
+            this.auth.authenticate,
+            validateBody(ChangePasswordDTO),
+            this.auth.withUser(this.changePassword),
+        );
     }
 
-    changePassword = async (request: RequestWithUser, response: express.Response, next: express.NextFunction): Promise<void> => {
+    changePassword = async (
+        request: RequestWithUser,
+        response: express.Response,
+        next: express.NextFunction,
+    ): Promise<void> => {
         const changePasswordDto: ChangePasswordDTO = request.body;
         const user = request.user;
         const password = changePasswordDto.password;
         const newPassword = changePasswordDto.newPassword;
         try {
-            const data = await this.userDal.checkPassword(user.username, password);
+            const data = await this.userDal.checkPassword(user.email, password);
             if (isLeft(data)) {
                 const error = data.left;
                 return next(new ClientException(error.message, error.errorCodes));
@@ -82,7 +101,11 @@ export default class UserController implements Controller {
         }
     };
 
-    getUser = async (request: express.Request, response: express.Response, next: express.NextFunction): Promise<void> => {
+    getUser = async (
+        request: express.Request,
+        response: express.Response,
+        next: express.NextFunction,
+    ): Promise<void> => {
         const params = request.params as UserIdParam;
         try {
             const userDetails = await this.userDal.getUserDetails(params.userId);
@@ -93,7 +116,11 @@ export default class UserController implements Controller {
         }
     };
 
-    getUserImage = async (request: RequestWithUser, response: express.Response, next: express.NextFunction): Promise<void> => {
+    getUserImage = async (
+        request: RequestWithUser,
+        response: express.Response,
+        next: express.NextFunction,
+    ): Promise<void> => {
         const params = request.params as UserIdParam;
         try {
             const userDetails = await this.userDal.getUserDetails(params.userId);
@@ -108,7 +135,11 @@ export default class UserController implements Controller {
         }
     };
 
-    submitUserImage = async (request: RequestWithUser, response: express.Response, next: express.NextFunction): Promise<void> => {
+    submitUserImage = async (
+        request: RequestWithUser,
+        response: express.Response,
+        next: express.NextFunction,
+    ): Promise<void> => {
         const userId = request.user.id;
         const file = request.file;
         try {
@@ -136,19 +167,29 @@ export default class UserController implements Controller {
                 next(new ClientException(error.message, error.errorCodes));
             }
         } catch (error) {
-            this.logger.error(`Error creating user ${JSON.stringify({ username: newUser.username, phoneNumber: newUser.phoneNumber })}`, { error });
+            this.logger.error(
+                `Error creating user ${JSON.stringify({
+                    email: newUser.email,
+                    phoneNumber: newUser.phoneNumber,
+                })}`,
+                { error },
+            );
             next(new ServerException("Failed to create user"));
         }
     };
 
-    checkUserExists = async (request: express.Request, response: express.Response, next: NextFunction): Promise<void> => {
+    checkUserExists = async (
+        request: express.Request,
+        response: express.Response,
+        next: NextFunction,
+    ): Promise<void> => {
         const user: UserExistsDTO = request.body;
         try {
-            const exists = await this.userDal.usernameExists(user.username);
-            this.logger.info(`Checked existence of username: ${user.username}, result: ${exists}`);
+            const exists = await this.userDal.emailExists(user.email);
+            this.logger.info(`Checked existence of email: ${user.email}, result: ${exists}`);
             response.status(200).json({ exists });
         } catch (error) {
-            this.logger.error(`Error checking if user with username ${user.username} exists`, { error });
+            this.logger.error(`Error checking if user with email ${user.email} exists`, { error });
             next(new ServerException(`Failed checking if user exists`));
         }
     };
@@ -167,7 +208,10 @@ export default class UserController implements Controller {
                 next(new ClientException(error.message, error.errorCodes));
             }
         } catch (error) {
-            this.logger.error(`Error verifying user with verification request: ${JSON.stringify(verificationRequest)}`, { error });
+            this.logger.error(
+                `Error verifying user with verification request: ${JSON.stringify(verificationRequest)}`,
+                { error },
+            );
             next(new ServerException(`Failed checking if user exists`));
         }
     };
@@ -175,7 +219,10 @@ export default class UserController implements Controller {
     loginUser = async (request: express.Request, response: express.Response, next: NextFunction): Promise<void> => {
         const user: LoginUserDTO = request.body;
         try {
-            const data: Either<ErrorResponse, UserDetails> = await this.userDal.checkPassword(user.username, user.password);
+            const data: Either<ErrorResponse, UserDetails> = await this.userDal.checkPassword(
+                user.email,
+                user.password,
+            );
             if (isRight(data)) {
                 const user = data.right;
                 this.logger.info(`Logged in user: ${JSON.stringify(user)}`);
@@ -186,7 +233,7 @@ export default class UserController implements Controller {
                 next(new ClientException(error.message, error.errorCodes));
             }
         } catch (error) {
-            this.logger.error(`Error with user login for username ${user.username}`, { error });
+            this.logger.error(`Error with user login for user ${user.email}`, { error });
             next(new ServerException(`Failed to login user`));
         }
     };

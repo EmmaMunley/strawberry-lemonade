@@ -1,4 +1,4 @@
-INSERT INTO users (username, PASSWORD, phone_number, verification_token)
+INSERT INTO users (email, PASSWORD, phone_number, verification_token)
     VALUES ($1, $2, $3, $4)
 RETURNING
     *, CASE WHEN image_file NOTNULL THEN

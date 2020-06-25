@@ -1,6 +1,6 @@
 enum ErrorCodes {
     // Invalid
-    invalidUsername = "invalid/username",
+    invalidEmail = "invalid/email",
     invalidPhoneNumber = "invalid/phoneNumber",
     invalidPassword = "invalid/password",
     invalidUserId = "invalid/userId",
@@ -12,7 +12,7 @@ enum ErrorCodes {
     invalidRegistryUrl = "invalid/registryUrl",
     invalidRegistrySource = "invalid/registrySource",
     // Conflict
-    usernameTaken = "conflict/username-taken",
+    emailTaken = "conflict/email-taken",
     userNotFound = "conflict/user-notFound",
     userAlreadyVerified = "conflict/user-alreadyVerified",
     imageNotFound = "conflict/image-not-found",

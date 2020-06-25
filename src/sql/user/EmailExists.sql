@@ -5,5 +5,5 @@ SELECT
         FROM
             users
         WHERE
-            username = $1);
+            email = $1);
 

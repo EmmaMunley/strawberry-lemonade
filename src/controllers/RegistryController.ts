@@ -79,7 +79,7 @@ export default class UserController implements Controller {
 
         try {
             await this.registryDal.addRegistry(user.id, registryUrl, registrySource);
-            this.logger.info(`Success adding registry ${registryUrl} from ${registrySource} for user ${user.username}`);
+            this.logger.info(`Success adding registry ${registryUrl} from ${registrySource} for user ${user.email}`);
             response.status(200).json({});
         } catch (error) {
             this.logger.error(`Error adding registry`, { error });
@@ -97,7 +97,7 @@ export default class UserController implements Controller {
 
         try {
             await this.registryDal.deleteRegistry(user.id, registrySource);
-            this.logger.info(`Success deleting registry with source ${registrySource} for user ${user.username}`);
+            this.logger.info(`Success deleting registry with source ${registrySource} for user ${user.email}`);
             response.status(200).json({});
         } catch (error) {
             this.logger.error(`Error deleting registry`, { error });

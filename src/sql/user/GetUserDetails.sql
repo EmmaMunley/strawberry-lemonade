@@ -1,6 +1,6 @@
 SELECT
     id,
-    username,
+    email,
     image_file,
     created_at,
     CASE WHEN image_file NOTNULL THEN

@@ -12,7 +12,7 @@ export type UserIdParam = t.TypeOf<typeof UserIdParam>;
 export const NewUser = t.exact(
     t.type({
         id: UserTypes.UserId,
-        username: UserTypes.Username,
+        email: UserTypes.Email,
         phoneNumber: UserTypes.PhoneNumber,
         password: UserTypes.UnhashedPassword,
     }),
@@ -23,7 +23,7 @@ export const UserDetails = t.exact(
     t.intersection([
         t.type({
             id: UserTypes.UserId,
-            username: UserTypes.Username,
+            email: UserTypes.Email,
             imageExists: t.boolean,
         }),
         CreatedAt,

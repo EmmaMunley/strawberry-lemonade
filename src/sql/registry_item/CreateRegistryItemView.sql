@@ -1,6 +1,6 @@
 CREATE OR REPLACE VIEW registry_item_detailed AS
 SELECT
-    u.username,
+    u.email,
     r.title,
     r.price,
     r.needed,

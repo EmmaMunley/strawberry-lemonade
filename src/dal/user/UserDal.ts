@@ -2,7 +2,7 @@ import { CreateUserDTO } from "../../dto/user/CreateUserDto";
 import { User, UserId, UserDetails } from "../../types/user/User";
 import {
     ErrorResponse,
-    usernameTaken,
+    emailTaken,
     alreadyVerified,
     incorrectVerificationToken,
     incorrectPassword,
@@ -49,14 +49,14 @@ export default class UserDal {
         return await this.pool.returningOne(query, UserDetails);
     }
 
-    public async getUserId(username: string): Promise<string> {
-        const query = this.queries.getUserId(username);
+    public async getUserId(email: string): Promise<string> {
+        const query = this.queries.getUserId(email);
         const result = await this.pool.returningOne(query, UserId);
         return result.id;
     }
 
-    public async usernameExists(username: string, connection?: Queriable): Promise<boolean> {
-        const query = this.queries.usernameExists(username);
+    public async emailExists(email: string, connection?: Queriable): Promise<boolean> {
+        const query = this.queries.emailExists(email);
         const client = connection ? connection : this.pool;
         const result = await client.returningOne(query, Exists);
         return result.exists;
@@ -74,12 +74,12 @@ export default class UserDal {
         const transaction = await this.pool.transaction();
         await transaction.begin();
         try {
-            const exists = await this.usernameExists(user.username, transaction);
+            const exists = await this.emailExists(user.email, transaction);
             if (exists) {
-                return left(usernameTaken(user.username));
+                return left(emailTaken(user.email));
             }
             const password = await this.hashPassword(user.password);
-            const query = this.queries.createUser(user.username, password, user.phoneNumber, verificationToken);
+            const query = this.queries.createUser(user.email, password, user.phoneNumber, verificationToken);
             const createUser = await transaction.returningOne(query, UserDetails);
             await transaction.commit();
             return right(createUser);
@@ -103,8 +103,8 @@ export default class UserDal {
         return right(updated);
     }
 
-    public async checkPassword(username: string, password: string): Promise<Either<ErrorResponse, UserDetails>> {
-        const query = this.queries.getUserByUsername(username);
+    public async checkPassword(email: string, password: string): Promise<Either<ErrorResponse, UserDetails>> {
+        const query = this.queries.getUserByEmail(email);
         const user = await this.pool.returningOne(query, User);
         const isPasswordMatching = await bcrypt.compare(password, user.password);
         const userDetails = this.userToUserDetails(user);
@@ -119,7 +119,7 @@ export default class UserDal {
     private userToUserDetails(user: User): UserDetails {
         return {
             id: user.id,
-            username: user.username,
+            email: user.email,
             imageExists: user.imageExists,
             imageFile: user.imageFile,
             createdAt: user.createdAt,

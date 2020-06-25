@@ -40,10 +40,10 @@ export function alreadyVerified(): ErrorResponse {
     };
 }
 
-export function usernameTaken(username?: string): ErrorResponse {
+export function emailTaken(email?: string): ErrorResponse {
     return {
-        message: "Username is taken" + (username ? ": " + username : ""),
-        errorCodes: [ErrorCodes.usernameTaken],
+        message: "Email is already registered" + (email ? ": " + email : ""),
+        errorCodes: [ErrorCodes.emailTaken],
     };
 }
 

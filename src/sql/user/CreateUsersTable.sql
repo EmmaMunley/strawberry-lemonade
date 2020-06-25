@@ -2,7 +2,7 @@ CREATE TABLE
 IF NOT EXISTS users
 (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
-    username text NOT NULL,
+    email text NOT NULL,
     password text NOT NULL,
     phone_number text NOT NULL, 
     is_verified boolean NOT NULL DEFAULT FALSE,
@@ -11,5 +11,5 @@ IF NOT EXISTS users
     created_at timestamptz NOT NULL DEFAULT NOW(),
     updated_at timestamptz NOT NULL DEFAULT NOW(), 
     PRIMARY KEY(id),
-    UNIQUE (username)
+    UNIQUE (email)
 )

@@ -17,14 +17,13 @@ export const PhoneNumber = new t.Type<string, string, unknown>(
     t.identity,
 );
 
-const usernameRegex: RegExp = config.auth.usernameRegex;
-export const Username = new t.Type<string, string, unknown>(
-    "Username",
-    (username): username is string => typeof username === "string",
-    (username, context) =>
-        typeof username === "string" && validator.matches(username, usernameRegex)
-            ? t.success(username)
-            : t.failure(username, context, ErrorCodes.invalidUsername),
+export const Email = new t.Type<string, string, unknown>(
+    "Email",
+    (email): email is string => typeof email === "string",
+    (email, context) =>
+        typeof email === "string" && validator.isEmail(email)
+            ? t.success(email)
+            : t.failure(email, context, ErrorCodes.invalidEmail),
     t.identity,
 );
 
@@ -53,7 +52,10 @@ export const VerificationToken = new t.Type<string, string, unknown>(
 export const UserIsVerified = new t.Type<boolean, boolean, unknown>(
     "UserIsVerified",
     (isVerified): isVerified is boolean => typeof isVerified === "boolean",
-    (isVerified, context) => (typeof isVerified === "boolean" ? t.success(isVerified) : t.failure(isVerified, context, ErrorCodes.invalidIsVerified)),
+    (isVerified, context) =>
+        typeof isVerified === "boolean"
+            ? t.success(isVerified)
+            : t.failure(isVerified, context, ErrorCodes.invalidIsVerified),
     t.identity,
 );
 
