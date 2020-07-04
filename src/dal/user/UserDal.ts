@@ -5,7 +5,12 @@ import {
     emailTaken,
     alreadyVerified,
     incorrectVerificationToken,
+<<<<<<< HEAD
     incorrectUserCredentials,
+=======
+    incorrectPassword,
+    userNotFound,
+>>>>>>> 2bdd0fb556fb872343444d533385d49cf58080a2
 } from "../../error/errorResponses";
 import { Pool } from "../../database/pool/Pool";
 import { AppConfiguration } from "../../config/Configuration";
