@@ -10,8 +10,6 @@ export const config = {
     },
     auth: {
         saltRounds: 10,
-        // Matches string starting with a character, followed by alphanumerics, with total length between 2 and 20 inclusive
-        emailRegex: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
         /* Matches string with at least one lower and uppercase character, one special character, and one number
                  with total length between 7 and 20 inclusive */
         passwordRegex: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{7,30}$/i,

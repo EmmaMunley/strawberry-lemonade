@@ -5,7 +5,7 @@ import {
     emailTaken,
     alreadyVerified,
     incorrectVerificationToken,
-    incorrectPassword,
+    incorrectUserCredentials,
 } from "../../error/errorResponses";
 import { Pool } from "../../database/pool/Pool";
 import { AppConfiguration } from "../../config/Configuration";
@@ -105,13 +105,17 @@ export default class UserDal {
 
     public async checkPassword(email: string, password: string): Promise<Either<ErrorResponse, UserDetails>> {
         const query = this.queries.getUserByEmail(email);
-        const user = await this.pool.returningOne(query, User);
+        const user = await this.pool.returningMaybeOne(query, User);
+        if (!user) {
+            return left(incorrectUserCredentials());
+        }
+
         const isPasswordMatching = await bcrypt.compare(password, user.password);
         const userDetails = this.userToUserDetails(user);
         if (isPasswordMatching) {
             return right(userDetails);
         } else {
-            return left(incorrectPassword());
+            return left(incorrectUserCredentials());
         }
     }
 

@@ -19,10 +19,10 @@ export function userNotFound(): ErrorResponse {
     };
 }
 
-export function incorrectPassword(): ErrorResponse {
+export function incorrectUserCredentials(): ErrorResponse {
     return {
-        message: "Password is incorrect",
-        errorCodes: [ErrorCodes.incorrectPassword],
+        message: "Invalid email/password",
+        errorCodes: [ErrorCodes.incorrectUserCredentials],
     };
 }
 

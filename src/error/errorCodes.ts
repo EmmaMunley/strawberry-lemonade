@@ -18,7 +18,7 @@ enum ErrorCodes {
     imageNotFound = "conflict/image-not-found",
     // Incorrect
     incorrectVerificationToken = "incorrect/verificationToken",
-    incorrectPassword = "incorrect/password",
+    incorrectUserCredentials = "incorrect/userCredentials",
     // Auth`
     badAuthenticationToken = "auth/bad-token",
     missingAuthenticationToken = "auth/missing-token",
