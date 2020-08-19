@@ -127,6 +127,7 @@ export default class UserDal {
             imageExists: user.imageExists,
             imageFile: user.imageFile,
             createdAt: user.createdAt,
+            registryExists: user.registryExists,
         };
     }
 }

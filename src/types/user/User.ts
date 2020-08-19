@@ -25,6 +25,7 @@ export const UserDetails = t.exact(
             id: UserTypes.UserId,
             email: UserTypes.Email,
             imageExists: t.boolean,
+            registryExists: t.boolean,
         }),
         CreatedAt,
         // Optional imageFile

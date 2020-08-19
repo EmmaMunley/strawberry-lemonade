@@ -7,7 +7,18 @@ SELECT
         TRUE
     ELSE
         FALSE
-    END AS image_exists
+    END AS image_exists,
+    CASE WHEN EXISTS (
+        SELECT
+            *
+        FROM
+            registry
+        WHERE
+            id = registry.user_id) THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS registry_exists
 FROM
     users
 WHERE
