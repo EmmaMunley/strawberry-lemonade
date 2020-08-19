@@ -11,7 +11,7 @@ import axios from "axios";
 export class Target implements Scraper {
     private static GET_ITEMS_URL = "https://api.target.com/registry_items_availabilities/v2/giftgivers/";
     private static WEBSITE = "https://www.target.com/";
-
+    private static REGISTRY_LOAD_TIMEOUT_MS = 20000;
     private static STORE_ID = 3990;
     private apiKey?: string;
     private logger = LoggerFactory.getLogger(module);
@@ -66,7 +66,7 @@ export class Target implements Scraper {
             }
         });
         // networkidle0 - wait until no network traffic for 500ms
-        await page.goto(Target.WEBSITE, { waitUntil: "networkidle0" });
+        await page.goto(Target.WEBSITE, { waitUntil: "networkidle0", timeout: Target.REGISTRY_LOAD_TIMEOUT_MS });
         await page.close();
         await browser.close();
     };

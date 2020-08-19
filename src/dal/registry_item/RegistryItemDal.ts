@@ -14,17 +14,17 @@ export default class RegistryItemDal {
         this.pool = pool;
     }
 
-    async getRegistryItems(userId: string, source: RegistrySource): Promise<RegistryItem[]> {
-        const query = this.queries.getRegistryItems(userId, source);
+    async getRegistryItems(userId: string, registryId: string, source: RegistrySource): Promise<RegistryItem[]> {
+        const query = this.queries.getRegistryItems(userId, registryId, source);
         return await this.pool.returningMany(query, RegistryItem);
     }
 
-    async updateRegistryItems(userId: string, items: RegistryItem[]): Promise<void> {
+    async updateRegistryItems(userId: string, registryId: string, items: RegistryItem[]): Promise<void> {
         const transaction = await this.pool.transaction();
         await transaction.begin();
         try {
-            const deleteItemsQuery = this.queries.deleteRegistryItems(userId);
-            const addItemsQuery = this.queries.addRegistryItems(userId, items);
+            const deleteItemsQuery = this.queries.deleteRegistryItems(userId, registryId);
+            const addItemsQuery = this.queries.addRegistryItems(userId, registryId, items);
             await transaction.returningNone(deleteItemsQuery);
             await transaction.returningNone(addItemsQuery);
             await transaction.commit();

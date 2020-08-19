@@ -4,13 +4,17 @@ import { UserAuthentication } from "../middleware/UserAuthentication";
 import Controller from "./Controller";
 import { injectable } from "inversify";
 import { RequestWithUser } from "../types/request/RequestWithUser";
-import { AddRegistryDTO } from "../dto/registry/AddRegistryDto";
+import { CreateRegistryDTO } from "../dto/registry/CreateRegistryDto";
 import { validateBody } from "../middleware/validation";
-import RegistryDal from "../dal/registry/RegistryDal";
 import ServerException from "../exceptions/ServerException";
 import { DeleteRegistryDTO } from "../dto/registry/DeleteRegistryDto";
+import RegistryDal from "../dal/registry/RegistryDal";
+import NotFoundException from "../exceptions/NotFoundException";
+import RegistryPartnerDal from "../dal/registry_partner/RegistryPartnerDal";
+import { GetRegistrySourceItemsDto } from "../dto/registry/GetRegistrySourceItemsDto";
 import Scrapers from "../scrapers/Scrapers";
-import RegistryItemDal from "../dal/registry_item/RegistryItemDal";
+import { Scraper } from "../scrapers/Scraper";
+import { isLeft } from "fp-ts/lib/Either";
 
 @injectable()
 export default class UserController implements Controller {
@@ -18,31 +22,37 @@ export default class UserController implements Controller {
     public router = express.Router();
     private logger = LoggerFactory.getLogger(module);
 
-    private scrapers: Scrapers;
     private registryDal: RegistryDal;
-    private registryItemDal: RegistryItemDal;
+    private registryPartnerDal: RegistryPartnerDal;
     private auth: UserAuthentication;
+    private scrapers: Scrapers;
 
     constructor(
         auth: UserAuthentication,
         registryDal: RegistryDal,
-        registryItemDal: RegistryItemDal,
+        registryPartnerDal: RegistryPartnerDal,
         scrapers: Scrapers,
     ) {
         this.auth = auth;
         this.registryDal = registryDal;
-        this.registryItemDal = registryItemDal;
+        this.registryPartnerDal = registryPartnerDal;
         this.scrapers = scrapers;
         this.intializeRoutes();
     }
 
     public intializeRoutes(): void {
         this.router.get("/", this.auth.authenticate, this.auth.withUser(this.getRegistry));
+        this.router.get(
+            "/source",
+            this.auth.authenticate,
+            validateBody(GetRegistrySourceItemsDto),
+            this.auth.withUser(this.getRegistrySourceItems),
+        );
         this.router.post(
             "/",
             this.auth.authenticate,
-            validateBody(AddRegistryDTO),
-            this.auth.withUser(this.addRegistry),
+            validateBody(CreateRegistryDTO),
+            this.auth.withUser(this.createRegistry),
         );
         this.router.delete(
             "/",
@@ -59,31 +69,57 @@ export default class UserController implements Controller {
     ): Promise<void> => {
         const user = request.user;
         try {
-            const registries = await this.registryDal.getRegistries(user.id);
-            const registryItems = await this.scrapers.getAllRegistryItems(user.id, registries);
-            await this.registryItemDal.updateRegistryItems(user.id, registryItems);
-            response.json(registryItems);
+            const registry = await this.registryDal.getRegistry(user.id);
+            if (registry === undefined) {
+                const errorMsg = `Registry not found for user ${user.id}`;
+                this.logger.error(errorMsg);
+                next(new NotFoundException(errorMsg));
+            } else {
+                response.json(registry);
+            }
         } catch (error) {
             this.logger.error(`Error getting registry`, { error });
             next(new ServerException("Error getting registry"));
         }
     };
 
-    addRegistry = async (
+    getRegistrySourceItems = async (
         request: RequestWithUser,
         response: express.Response,
         next: express.NextFunction,
     ): Promise<void> => {
         const user = request.user;
-        const { registryUrl, registrySource } = request.body as AddRegistryDTO;
+        const sourceUrl = request.body as GetRegistrySourceItemsDto;
 
         try {
-            await this.registryDal.addRegistry(user.id, registryUrl, registrySource);
-            this.logger.info(`Success adding registry ${registryUrl} from ${registrySource} for user ${user.email}`);
-            response.status(200).json({});
+            const getItemsResponse = await this.scrapers.getRegistryItemsWithoutFallback(user.id, sourceUrl);
+            if (isLeft(getItemsResponse)) {
+                throw new Error(getItemsResponse.left.message);
+            }
+            response.status(200).json(getItemsResponse.right);
         } catch (error) {
-            this.logger.error(`Error adding registry`, { error });
-            next(new ServerException("Error adding registry"));
+            this.logger.error(`Error getting registry items for ${JSON.stringify(sourceUrl)} for user ${user.id}`, {
+                error,
+            });
+            next(new ServerException("Error getting registry items"));
+        }
+    };
+
+    createRegistry = async (
+        request: RequestWithUser,
+        response: express.Response,
+        next: express.NextFunction,
+    ): Promise<void> => {
+        const user = request.user;
+        const createRegistryRequest = request.body as CreateRegistryDTO;
+
+        try {
+            const createRegistryResponse = await this.registryDal.createRegistry(user.id, createRegistryRequest);
+            this.logger.info(`Success creating registry ${createRegistryResponse.registryId} for user ${user.id}`);
+            response.status(201).json(createRegistryResponse);
+        } catch (error) {
+            this.logger.error(`Error creating registry for user ${user.id}`, { error });
+            next(new ServerException("Error creating registry"));
         }
     };
 
@@ -93,11 +129,10 @@ export default class UserController implements Controller {
         next: express.NextFunction,
     ): Promise<void> => {
         const user = request.user;
-        const { registrySource } = request.body as DeleteRegistryDTO;
+        const { source, registryId } = request.body as DeleteRegistryDTO;
 
         try {
-            await this.registryDal.deleteRegistry(user.id, registrySource);
-            this.logger.info(`Success deleting registry with source ${registrySource} for user ${user.email}`);
+            await this.registryPartnerDal.deleteRegistryPartner(user.id, registryId, source);
             response.status(200).json({});
         } catch (error) {
             this.logger.error(`Error deleting registry`, { error });

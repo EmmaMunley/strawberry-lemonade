@@ -9,7 +9,8 @@ export function createUUIDType(typeName: string, validationError: ErrorCodes): t
     return new t.Type<string, string, unknown>(
         typeName,
         (id): id is string => typeof id === "string",
-        (id, context) => (typeof id === "string" && validator.isUUID(id, 4) ? t.success(id) : t.failure(id, context, validationError)),
+        (id, context) =>
+            typeof id === "string" && validator.isUUID(id, 4) ? t.success(id) : t.failure(id, context, validationError),
         t.identity,
     );
 }
@@ -28,7 +29,8 @@ export const PostgresCount = new t.Type<number, string, unknown>(
 export const NonNegativeNum = new t.Type<number, number, unknown>(
     "NonNegativeNum",
     (num): num is number => typeof num === "number",
-    (num, context) => (typeof num === "number" && num >= 0 ? t.success(num) : t.failure(num, context, ErrorCodes.invalidCount)),
+    (num, context) =>
+        typeof num === "number" && num >= 0 ? t.success(num) : t.failure(num, context, ErrorCodes.invalidCount),
     t.identity,
 );
 

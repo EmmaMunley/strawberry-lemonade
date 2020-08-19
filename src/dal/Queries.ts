@@ -45,4 +45,19 @@ export class CategorizedQueries extends Queries {
     loadSQLFile(file: string): string {
         return this._loadSQLFile(this.queryDir, file);
     }
+
+    protected getValueString(numCols: number, numRows: number): string {
+        const values = [];
+        for (let i = 0; i < numRows; i++) {
+            // Single row
+            const rowVals = [];
+            for (let j = 0; j < numCols; j++) {
+                rowVals.push(`$${i * numCols + j + 1}`);
+            }
+            // Example row: ($1, $2, $3, $4)
+            const row = `(${rowVals.join(", ")})`;
+            values.push(row);
+        }
+        return values.join(", ");
+    }
 }

@@ -11,6 +11,7 @@ enum ErrorCodes {
     invalidCount = "invalid/count",
     invalidRegistryUrl = "invalid/registryUrl",
     invalidRegistrySource = "invalid/registrySource",
+    invalidRegistryId = "invalid/registryId",
     // Conflict
     emailTaken = "conflict/email-taken",
     userNotFound = "conflict/user-notFound",

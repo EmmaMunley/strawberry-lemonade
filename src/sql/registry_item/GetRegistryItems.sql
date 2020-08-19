@@ -10,5 +10,6 @@ FROM
     registry_item
 WHERE
     user_id = $1
-    AND source = $2;
+    AND registry_id = $2
+    AND source = $3;
 

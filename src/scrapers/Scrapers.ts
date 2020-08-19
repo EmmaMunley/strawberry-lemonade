@@ -3,7 +3,7 @@ import { Scraper } from "./Scraper";
 import { Wayfair } from "./Wayfair";
 import { BedBathAndBeyond } from "./BedBathAndBeyond";
 import { RegistrySource } from "../types/registry/RegistryTypes";
-import { Registry, RegistryItem } from "../types/registry/Registry";
+import { RegistryPartner, RegistryItem } from "../types/registry/Registry";
 import { Macys } from "./Macys";
 import { CrateAndBarrel } from "./CrateAndBarrel";
 import { Target } from "./Target";
@@ -13,8 +13,9 @@ import { RestorationHardware } from "./RestorationHardware";
 import { Walmart } from "./Walmart";
 import { LoggerFactory } from "../logger/loggerFactory";
 import { validate } from "../types";
-import { isLeft } from "fp-ts/lib/Either";
+import { isLeft, Either, right, left } from "fp-ts/lib/Either";
 import RegistryItemDal from "../dal/registry_item/RegistryItemDal";
+import { ErrorResponse } from "../error/errorResponses";
 
 @injectable()
 export default class Scrapers {
@@ -48,31 +49,66 @@ export default class Scrapers {
         };
     }
 
-    public async getAllRegistryItems(userId: string, registries: Registry[]): Promise<RegistryItem[]> {
+    public async getAllRegistryItems(
+        userId: string,
+        registryId: string,
+        registries: RegistryPartner[],
+    ): Promise<RegistryItem[]> {
         const registryItems = await Promise.all(
-            registries.map(async registry => await this.getRegistryItems(userId, registry)),
+            registries.map(async registry => {
+                const getRegistryItemsResponse = await this.getRegistryItems(userId, registryId, registry);
+                return isLeft(getRegistryItemsResponse) ? [] : getRegistryItemsResponse.right;
+            }),
         );
         return registryItems.flat().filter(this.isValidRegistryItem);
     }
 
-    private async getRegistryItems(userId: string, registry: Registry): Promise<RegistryItem[]> {
+    public async getRegistryItems(
+        userId: string,
+        registryId: string,
+        registry: RegistryPartner,
+    ): Promise<Either<ErrorResponse, RegistryItem[]>> {
         try {
             const scraper = this.getScraperForSource(registry.source);
             const items = await scraper.scrape(registry.url, userId);
-            return items;
+            return right(items);
         } catch (error) {
             this.logger.error(`Failed to get registry items from: ${JSON.stringify(registry)}`, { error });
-            return this.getFallbackRegistryItems(userId, registry);
+            return await this.getFallbackRegistryItems(userId, registryId, registry);
         }
     }
 
-    private async getFallbackRegistryItems(userId: string, registry: Registry): Promise<RegistryItem[]> {
+    private async getFallbackRegistryItems(
+        userId: string,
+        registryId: string,
+        registry: RegistryPartner,
+    ): Promise<Either<ErrorResponse, RegistryItem[]>> {
         try {
-            const items = this.registryItemDal.getRegistryItems(userId, registry.source);
-            return items;
+            const items = await this.registryItemDal.getRegistryItems(userId, registryId, registry.source);
+            if (items.length === 0) {
+                const errorMsg = `No fallback registry items found for: ${JSON.stringify(registry)}`;
+                this.logger.error(errorMsg);
+                return left({ message: errorMsg });
+            }
+            return right(items);
         } catch (error) {
-            this.logger.error(`Failed to get fallback registry items from: ${JSON.stringify(registry)}`, { error });
-            return [];
+            const errorMsg = `Failed to get fallback registry items from: ${JSON.stringify(registry)}`;
+            this.logger.error(errorMsg, { error });
+            return left({ message: errorMsg });
+        }
+    }
+
+    public async getRegistryItemsWithoutFallback(
+        userId: string,
+        registry: RegistryPartner,
+    ): Promise<Either<ErrorResponse, RegistryItem[]>> {
+        try {
+            const scraper = this.getScraperForSource(registry.source);
+            const items = await scraper.scrape(registry.url, userId);
+            return right(items);
+        } catch (error) {
+            this.logger.error(`Failed to get registry items from: ${JSON.stringify(registry)}`, { error });
+            return left({ message: `Failed to get registry items from: ${JSON.stringify(registry)}` });
         }
     }
 

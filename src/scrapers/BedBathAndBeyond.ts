@@ -10,8 +10,8 @@ import { formatUrl, formatPrice } from "../utils/parsing";
 
 @injectable()
 export class BedBathAndBeyond implements Scraper {
-    private static REGISTRY_SELECTOR = "div.pb25";
-    private static REGISTRY_LOAD_TIMEOUT_MS = 5000;
+    private static REGISTRY_SELECTOR = "div.cell.mx-auto div.grid-x";
+    private static REGISTRY_LOAD_TIMEOUT_MS = 20000;
     private logger = LoggerFactory.getLogger(module);
 
     public async scrape(url: string): Promise<RegistryItem[]> {
@@ -21,29 +21,29 @@ export class BedBathAndBeyond implements Scraper {
     }
 
     private async getBedBathAndBeyondRegistryHTML(url: string): Promise<string> {
-        const browser = await puppeteer.launch({ headless: false });
-        const page = await browser.newPage();
+        let browser;
+        let page;
+        try {
+            browser = await puppeteer.launch({ headless: false });
+            page = await browser.newPage();
 
-        await page.setRequestInterception(true);
-        // Improve page load times by skipping useless requests
-        page.on("request", request => {
-            if (IGNORABLE_RESOURCE_TYPES.includes(request.resourceType())) {
-                request.abort();
-            } else {
-                request.continue();
-            }
-        });
-        await page.goto(url);
-        await page.waitFor(BedBathAndBeyond.REGISTRY_SELECTOR, {
-            visible: true,
-            timeout: BedBathAndBeyond.REGISTRY_LOAD_TIMEOUT_MS,
-        });
-
-        const registryHtml = await page.$eval(BedBathAndBeyond.REGISTRY_SELECTOR, e => e.innerHTML);
-        await page.close();
-        await browser.close();
-
-        return registryHtml.toString();
+            await page.setRequestInterception(true);
+            // Improve page load times by skipping useless requests
+            page.on("request", request => {
+                if (IGNORABLE_RESOURCE_TYPES.includes(request.resourceType())) {
+                    request.abort();
+                } else {
+                    request.continue();
+                }
+            });
+            // networkidle0 - wait until no network traffic for 500ms
+            await page.goto(url, { waitUntil: "networkidle0", timeout: BedBathAndBeyond.REGISTRY_LOAD_TIMEOUT_MS });
+            const registryHtml = await page.$eval(BedBathAndBeyond.REGISTRY_SELECTOR, e => e.innerHTML);
+            return registryHtml.toString();
+        } finally {
+            await page?.close();
+            await browser?.close();
+        }
     }
 
     private parseBedBathAndBeyondRegistryHTML(registryHtml: string): RegistryItem[] {

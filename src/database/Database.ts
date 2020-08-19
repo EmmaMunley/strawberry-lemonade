@@ -22,6 +22,7 @@ export class Database extends Queries {
     private async initializeTables(): Promise<void> {
         await this.pool.query(this.loadQuery("user", "CreateUsersTable"));
         await this.pool.query(this.loadQuery("registry", "CreateRegistryTable"));
+        await this.pool.query(this.loadQuery("registry_partner", "CreateRegistryPartnersTable"));
         await this.pool.query(this.loadQuery("registry_item", "CreateRegistryItemTable"));
     }
     private async initializeViews(): Promise<void> {
@@ -35,6 +36,7 @@ export class Database extends Queries {
         await this.pool.query(this.loadQuery("functions", "TriggerSetUpdatedAt"));
     }
     private async initializeTriggers(): Promise<void> {
+        // To enable created_at and updated_at timestamps for a given table, add them to SetUpdatedAt.sql
         await this.pool.query(this.loadQuery("triggers", "SetUpdatedAt"));
     }
     private loadQuery(queryDir: string, file: string): string {

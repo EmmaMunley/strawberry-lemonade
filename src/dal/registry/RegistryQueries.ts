@@ -2,30 +2,41 @@ import { injectable } from "inversify";
 import { Query } from "../../database/pool/QueryClient";
 import { CategorizedQueries } from "../Queries";
 import { AppConfiguration } from "../../config/Configuration";
-import { RegistrySource } from "../../types/registry/RegistryTypes";
+import { CreateRegistry } from "../../types/registry/Registry";
 
 @injectable()
 export class RegistryQueries extends CategorizedQueries {
-    private addRegistryQuery: string;
-    private getRegistriesQuery: string;
-    private deleteRegistryQuery: string;
+    private createRegistryQuery: string;
+    private getRegistryQuery: string;
 
     constructor(config: AppConfiguration) {
         super(config, "registry");
-        this.addRegistryQuery = this.loadSQLFile("CreateRegistry");
-        this.getRegistriesQuery = this.loadSQLFile("GetRegistries");
-        this.deleteRegistryQuery = this.loadSQLFile("DeleteRegistry");
+        this.createRegistryQuery = this.loadSQLFile("CreateRegistry");
+        this.getRegistryQuery = this.loadSQLFile("GetRegistry");
     }
 
-    public addRegistry(userId: string, url: string, source: RegistrySource): Query {
-        return { query: this.addRegistryQuery, values: [userId, url, source] };
+    public createRegistry(userId: string, registry: CreateRegistry): Query {
+        return {
+            query: this.createRegistryQuery,
+            values: [
+                userId,
+                registry.user.firstName,
+                registry.user.lastName,
+                registry.fiance.firstName,
+                registry.fiance.lastName,
+                registry.wedding.date,
+                registry.wedding.size,
+            ],
+        };
     }
 
-    public getRegistries(userId: string): Query {
-        return { query: this.getRegistriesQuery, values: [userId] };
-    }
-
-    public deleteRegistry(userId: string, source: RegistrySource): Query {
-        return { query: this.deleteRegistryQuery, values: [userId, source] };
+    // We don't require a registryId here because we assume there will be exactly one registryId for
+    // a given userId at this point in time. If more than one registry-type is supported in the future,
+    // a registryId will have to be included in this get request for it to return accurate results
+    public getRegistry(userId: string): Query {
+        return {
+            query: this.getRegistryQuery,
+            values: [userId],
+        };
     }
 }

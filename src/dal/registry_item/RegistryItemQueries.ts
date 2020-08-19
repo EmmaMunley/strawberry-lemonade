@@ -18,27 +18,28 @@ export class RegistryItemQueries extends CategorizedQueries {
         this.deleteRegistryItemsQuery = this.loadSQLFile("DeleteRegistryItems");
     }
 
-    public getRegistryItems(userId: string, source: RegistrySource): Query {
-        return { query: this.getRegistryItemsQuery, values: [userId, source] };
+    public getRegistryItems(userId: string, registryId: string, source: RegistrySource): Query {
+        return { query: this.getRegistryItemsQuery, values: [userId, registryId, source] };
     }
 
-    public addRegistryItems(userId: string, items: RegistryItem[]): Query {
+    public addRegistryItems(userId: string, registryId: string, items: RegistryItem[]): Query {
         const valueString = this.getValueString(RegistryItemQueries.NUM_COLS_IN_REGISTRY_ITEM, items.length);
         const query =
-            `INSERT INTO registry_item (user_id, title, price, needed, purchased, img, url, source) ` +
+            `INSERT INTO registry_item (user_id, registry_id, title, price, needed, purchased, img, url, source) ` +
             `VALUES ${valueString};`;
-        const values = this.flattenRegistryItems(userId, items);
+        const values = this.flattenRegistryItems(userId, registryId, items);
         return { query, values };
     }
 
-    public deleteRegistryItems(userId: string): Query {
-        return { query: this.deleteRegistryItemsQuery, values: [userId] };
+    public deleteRegistryItems(userId: string, registryId: string): Query {
+        return { query: this.deleteRegistryItemsQuery, values: [userId, registryId] };
     }
 
-    private flattenRegistryItems(userId: string, items: RegistryItem[]): (string | number)[] {
+    private flattenRegistryItems(userId: string, registryId: string, items: RegistryItem[]): (string | number)[] {
         // Lift an array of items into an array of values -- order of elements must match query column order
         return items.flatMap(item => [
             userId,
+            registryId,
             item.title,
             item.price,
             item.needed,
@@ -47,20 +48,5 @@ export class RegistryItemQueries extends CategorizedQueries {
             item.url,
             item.source,
         ]);
-    }
-
-    private getValueString(numCols: number, numRows: number): string {
-        const values = [];
-        for (let i = 0; i < numRows; i++) {
-            // Single row
-            const rowVals = [];
-            for (let j = 0; j < numCols; j++) {
-                rowVals.push(`$${i * numCols + j + 1}`);
-            }
-            // Example row: ($1, $2, $3, $4)
-            const row = `(${rowVals.join(", ")})`;
-            values.push(row);
-        }
-        return values.join(", ");
     }
 }

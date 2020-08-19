@@ -1,6 +1,5 @@
 SELECT
-    source,
-    url
+    *
 FROM
     registry
 WHERE
