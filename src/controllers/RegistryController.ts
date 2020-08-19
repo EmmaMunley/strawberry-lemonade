@@ -13,7 +13,7 @@ import NotFoundException from "../exceptions/NotFoundException";
 import RegistryPartnerDal from "../dal/registry_partner/RegistryPartnerDal";
 import { GetRegistrySourceItemsDto } from "../dto/registry/GetRegistrySourceItemsDto";
 import Scrapers from "../scrapers/Scrapers";
-import { Scraper } from "../scrapers/Scraper";
+import { JWTManager } from "../jwt/JWTManager";
 import { isLeft } from "fp-ts/lib/Either";
 
 @injectable()
@@ -22,6 +22,7 @@ export default class UserController implements Controller {
     public router = express.Router();
     private logger = LoggerFactory.getLogger(module);
 
+    private jwtManager: JWTManager;
     private registryDal: RegistryDal;
     private registryPartnerDal: RegistryPartnerDal;
     private auth: UserAuthentication;
@@ -29,11 +30,13 @@ export default class UserController implements Controller {
 
     constructor(
         auth: UserAuthentication,
+        jwtManager: JWTManager,
         registryDal: RegistryDal,
         registryPartnerDal: RegistryPartnerDal,
         scrapers: Scrapers,
     ) {
         this.auth = auth;
+        this.jwtManager = jwtManager;
         this.registryDal = registryDal;
         this.registryPartnerDal = registryPartnerDal;
         this.scrapers = scrapers;
@@ -116,6 +119,9 @@ export default class UserController implements Controller {
         try {
             const createRegistryResponse = await this.registryDal.createRegistry(user.id, createRegistryRequest);
             this.logger.info(`Success creating registry ${createRegistryResponse.registryId} for user ${user.id}`);
+            // Updated the session JWT cookie to reflect that a registry exists
+            const updatedUser = { ...user, registryExists: true };
+            this.jwtManager.setJWTHeader(updatedUser, response);
             response.status(201).json(createRegistryResponse);
         } catch (error) {
             this.logger.error(`Error creating registry for user ${user.id}`, { error });

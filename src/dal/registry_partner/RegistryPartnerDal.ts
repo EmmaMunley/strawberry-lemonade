@@ -25,6 +25,9 @@ export default class RegistryPartnerDal {
         registryPartners: RegistryPartner[],
         client: Queriable,
     ): Promise<void> {
+        if (registryPartners.length === 0) {
+            return;
+        }
         const query = this.queries.addRegistryPartners(userId, registryId, registryPartners);
         return await client.returningNone(query);
     }

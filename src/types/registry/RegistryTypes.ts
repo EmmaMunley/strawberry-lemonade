@@ -32,7 +32,6 @@ const isValidRegistryUrl = (registryUrl: string): boolean => {
         const hostname = url.parse(registryUrl, true).hostname;
         return hostname !== null && RegistryHostNames.has(hostname);
     } catch (error) {
-        console.log(error);
         return false;
     }
 };
@@ -55,7 +54,8 @@ const isValidRegistrySource = (registrySource: string): boolean => {
 
 export const RegistrySourceInternal = new t.Type<RegistrySource, string, unknown>(
     "RegistrySource",
-    (registrySource): registrySource is RegistrySource => typeof registrySource === "string" && isValidRegistrySource(registrySource),
+    (registrySource): registrySource is RegistrySource =>
+        typeof registrySource === "string" && isValidRegistrySource(registrySource),
     (registrySource, context) =>
         typeof registrySource === "string" && isValidRegistrySource(registrySource)
             ? t.success(registrySource as RegistrySource)

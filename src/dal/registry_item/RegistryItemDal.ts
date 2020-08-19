@@ -24,9 +24,12 @@ export default class RegistryItemDal {
         await transaction.begin();
         try {
             const deleteItemsQuery = this.queries.deleteRegistryItems(userId, registryId);
-            const addItemsQuery = this.queries.addRegistryItems(userId, registryId, items);
             await transaction.returningNone(deleteItemsQuery);
-            await transaction.returningNone(addItemsQuery);
+
+            if (items.length > 0) {
+                const addItemsQuery = this.queries.addRegistryItems(userId, registryId, items);
+                await transaction.returningNone(addItemsQuery);
+            }
             await transaction.commit();
         } catch (error) {
             await transaction.rollback();
